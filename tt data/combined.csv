@@ -1,0 +1,64 @@
+Department,Semester,Course Code,Course Name,L,T,P,S,C,Faculty
+CSE,2,CS162,Optimization,3.0,1,0,0,2,Dr. Dibyajyothi
+CSE,2,CS164,Data Structures & Algorithms,3.0,0,2,0,4,Prof. CB Akki
+CSE,2,CS163,Computer Architecture,3.0,1,0,0,2,Dr. Prabhu Prasad
+CSE,2,CS165,Mathematical foundations of Computing,2.0,0,2,0,3,Dr. Animesh Roy
+CSE,2,HS204 / HS153,Economics (HSS / I&E),3.0,0,0,0,3,Dr. Anusree Kini
+CSE,2,B1,Introduction to Design/Introduction to Personal Finance/Introduction to Internet of Things,3.0,1,0,0,2,Dr. Sandesh P/Dr. Siddharth/Dr Jagadeesha Bhat
+CSE,2,B2,Concurrency and Computation/Computer Intensive Statistical Methods/Industry Insights Program Part 1,3.0,1,0,0,2,Dr. Pramod Yelmewad/Dr Ramesh Athe/Mr. Ram Subramanian & Mr. Sasi Kumar Sundara Rajan
+CSE,4,MA202,Linear Algebra,3.0,1,0,0,4,Dr. Anand Barangi
+CSE,4,CS206,Theory of Computing,3.0,1,0,0,4,Dr. Pavan
+CSE,4,CS204,Operating Systems,3.0,0,2,0,4,Dr. Suvadeep
+CSE,4,CS301,Software Engineering,3.0,1,0,0,4,Dr. Vivekraj
+CSE,4,CS310,Database Management Systems,3.0,1,2,0,5,Dr. Pramod Yelmewad/Dr. Abdul Wahid
+CSE,4,HS205,Ethics,3.0,0,0,0,3,"Dr. Jolly Thomas, IIT Dharwad"
+CSE,6,CS307,Machine Learning,3.0,0,2,0,4,Dr. Girish GN
+CSE,6,B1,Deep Learning for Computer Vision/Large Languange Models/Natural Language Processing/Deep Speech Processing/CMOS RF Circuit Design,3.0,1,0,0,4,Chinmayanand/Dr. Sunil S/Dr. Krishnendu/Dr. Pankaj Kumar and Dr. Rajesh Kumar/Prof. SRM Prasanna
+CSE,6,B2,Blockchain Technology/Introduction to 5G Network/Model Checking/Quantum Communication/Quantum HPC and AI/Design Thinking and Innovation,3.0,1,0,0,4,Dr. Rajendra H/Dr. Jagadeesha R Bhat/Dr. Pavan/Dr. Aswath B/Dr. Manish M (Dr. Aswath)/Dr. Sandesh P
+CSE,6,B3,Automotive Embedded and Multimedia Systems/Microwave Engineering/Computer Graphics/Machine learning/Virtualization and Cloud Computing,3.0,1,0,0,4,Mr. Jagadeesh K (Dr Sibasankar Padhy)/Dr. Somen/Dr. Vivekraj V K/Dr. Deepak KT/Dr Malay
+CSE,6,B4,Data Analytics and Visualization/Statistics for Health Technology/Medical Image Analysis/Bioinformatics,3.0,1,0,0,4,Dr. Sunil CK/Dr. Ramesh Athe/Dr. Girish GN/Dr. Sunil Kumar PV
+CSE,6,Mini Project 1,Mini Project 1,0.0,0,0,8,2,Dr. Pramod Yelmewad and Animesh Roy
+CSE,8,CS499,Major-Project,0.0,0,0,32,8,Dr. Pramod Yelmewad and Dr. Animesh Roy
+DSAI,2,MA163,Linear Algebra,3.0,1,0,0,2,Dr. Sibasankar Padhy
+DSAI,2,CS162,Optimization,3.0,1,0,0,2,Dr. Dibyajyoti Guha
+DSAI,2,CS164,Computer Architecture,3.0,1,0,0,2,Dr. Manjunath
+DSAI,2,HS161,HSS / IE-Economics,3.0,0,0,0,3,Dr.Manjunath KV
+DSAI,2,CS163,Data Structures & Algorithms,3.0,0,2,0,4,Dr. Sunil Saumya
+DSAI,2,DS164,Data Curation Techniques,2.0,0,2,0,3,Dr. Siddharth R
+DSAI,2,B1(ASD151/HS151/New/New/New/New),Introduction to Design/Introduction to Personal Finance/Introduction to Internet of Things/Concurrency and Computation/Computer Intensive Statistical Methods/Industry Insights Program Part 1,1.5,1,0,0,2,Dr. Sandesh P/Dr. Siddharth/Dr Jagadeesha Bhat/Dr. Pramod Yelmewad/Dr Ramesh Athe/Mr. Ram Subramanian & Mr. Sasi Kumar Sundara Rajan
+DSAI,2,B2(New/New/New/New/New),Introduction to Digital VLSI Design/Photography101/Linux for Engineers/Data Science with Python/Introduction to Holistic Personality Development,1.5,2,0,0,2,Dr Prakash Pawar/Dr Prabhu Prasad BM/Dr. Shirshendu L/Dr. Abdul Wahid/ Prof. Chachadi and Dr. Chandrika K
+DSAI,4,MA202,Linear Algebra,3.0,1,0,0,4,Dr. Chinmayananda
+DSAI,4,HS206,Industrial Social Psychology,3.0,0,0,0,3,Dr. Navyashree
+DSAI,4,CS204,Operating Systems,3.0,1,0,0,4,Dr. Manjunath KV
+DSAI,4,DS204,Software Engineering and Services,3.0,0,2,0,4,Dr. Animesh Chaturvedi
+DSAI,4,CS310,Database Management System,3.0,1,2,0,5,Dr. Shirshendu & Dr. Utkarsh Khaire
+DSAI,4,DS205,Global Business Perspectives,3.0,0,0,0,3,Mr. Manmohan Singh
+DSAI,6,DS309,Cloud Computing,3.0,0,0,4,4,Dr. Animesh Chaturvedi
+DSAI,6,DS306,Financial Data Analytics,3.0,0,0,4,4,Dr. Utkarsh Khaire
+DSAI,6,DS307,Innovation & Entrepreneurship,3.0,1,0,0,4,Mr. Ram Subramanian
+DSAI,6,DS308,Data Security & Privacy,3.0,1,0,0,4,Dr. Abdul Wahid & Dr. Rajendra Hegadi
+DSAI,6,DS399,Mini Project-I,0.0,0,0,8,2,Coordinator: Dr. Shirshendu
+DSAI,6,HS101,Environmental Studies,0.0,0,0,5,2,-
+DSAI,6,B1,Deep Learning for Computer Vision/Large Language Models/Natural Language Processing/Deep Speech Processing,3.0,1,0,0,4,Dr. Chinmayanand/Dr. Sunil S/Dr. Krishnendu/Prof. SRM Prasanna
+DSAI,6,B2,Blockchain Technology/Introduction to 5G Network/Model Checking/Quantum Communication/Quantum HPC and AI/Design Thinking and Innovation,3.0,1,0,0,4,Dr. Rajendra H/Dr. Jagadeesha R Bhat/Dr. Pavan/Dr. Aswath B/Dr. Manish M (Dr. Aswath)/Dr. Sandesh P
+ECE,2,-,Linear Algebra,3.0,1,0,0,2,Dr. Somen Bhattacharjee
+ECE,2,-,Optimization,3.0,1,0,0,2,Dr. Dibyajyoti Guha
+ECE,2,-,Computer Architecture,3.0,1,0,0,2,Dr.Jagadish D N
+ECE,2,-,English Language and Communication,3.0,0,0,0,3,Dr. Rajesh N S
+ECE,2,-,Data Structures and Algorithms,3.0,0,2,0,4,Dr. Prabhu Prasad
+ECE,2,-,Network Analysis,2.0,1,0,0,3,Dr. Sibasankar Padhy
+ECE,2,B1(ASD151/HS151/New/New/New/New),Introduction to Design/Introduction to Personal Finance/Introduction to Internet of Things/Concurrency and Computation/Computer Intensive Statistical Methods/Industry Insights Program Part 1,1.5,1,0,0,2,Dr. Sandesh P/Dr. Siddharth/Dr Jagadeesha Bhat/Dr. Pramod Yelmewad/Dr Ramesh Athe/Mr. Ram Subramanian & Mr. Sasi Kumar Sundara Rajan
+ECE,2,B2(New/New/New/New/New),Introduction to Digital VLSI Design/Photography101/Linux for Engineers/Data Science with Python/Introduction to Holistic Personality Development,1.5,2,0,0,2,Dr Prakash Pawar/Dr Prabhu Prasad BM/Dr. Shirshendu L/Dr. Abdul Wahid/ Prof. Chachadi and Dr. Chandrika K
+ECE,4,MA208,Probability and Random Processes,3.0,1,0,0,4,Dr. Rajib Sharma
+ECE,4,EC205,Control Systems,3.0,0,2,0,4,Dr. Pankaj Kumar
+ECE,4,EC310,Embedded Systems Design,3.0,1,0,0,4,Dr. Prakash Pawar
+ECE,4,EC204,Analog and Digital Communication,3.0,1,2,0,5,Dr. Somen Bhattacharjee / Dr. Jagadish D N (Lab)
+ECE,4,HS204,Economics,3.0,1,0,0,4,Dr. Anushree Kini
+ECE,4,HS205,Ethics,3.0,0,0,0,3,Dr. Jolly Thomas IIT Dharwad
+ECE,6,CS307,Machine Learning,3.0,0,2,0,4,Dr. Girish GN
+ECE,6,B1,Deep Learning for Computer Vision/Large Language Models/Natural Language Processing/Deep Speech Processing/CMOS RF Circuit Design,3.0,1,0,0,4,Chinmayanand/Dr. Sunil S/Dr. Krishnendu/Dr. Pankaj Kumar and Dr. Rajesh Kumar/Prof. SRM Prasanna
+ECE,6,B2,Blockchain Technology/Introduction to 5G Network/Model Checking/Quantum Communication/Quantum HPC and AI/Design Thinking and Innovation,3.0,1,0,0,4,Dr. Rajendra H/Dr. Jagadeesha R Bhat/Dr. Pavan/Dr. Aswath B/Dr. Manish M (Dr. Aswath)/Dr. Sandesh P
+ECE,6,B3,Automotive Embedded and Multimedia Systems/Microwave Engineering/Computer Graphics/Machine learning/Virtualization and Cloud Computing,3.0,1,0,0,4,Mr. Jagadeesh K (Dr Sibasankar Padhy)/Dr. Somen/Dr. Vivekraj V K/Dr. Deepak KT/Dr Malay
+ECE,6,B4,Data Analytics and Visualization/Statistics for Health Technology/Medical Image Analysis/Bioinformatics,3.0,1,0,0,4,Dr. Sunil CK/Dr. Ramesh Athe/Dr. Girish GN/Dr. Sunil Kumar PV
+ECE,6,Mini Project 1,Mini Project 1,0.0,0,0,8,2,Dr. Pramod Yelmewad and Animesh Roy
+ECE,8,EC499,Major Project,0.0,0,0,32,8,-

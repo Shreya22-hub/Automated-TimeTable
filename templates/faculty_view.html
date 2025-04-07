@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Timetable Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <nav class="mb-8 flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="text-blue-600 hover:text-blue-800">&larr; Back to Generator</a>
+            <h1 class="text-2xl font-bold">Faculty Timetable Generator</h1>
+        </nav>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold mb-4">Upload Department Timetables</h2>
+                <div class="flex gap-4 items-center">
+                    <input type="file" id="timetableFiles" accept=".xlsx" multiple class="hidden">
+                    <button onclick="document.getElementById('timetableFiles').click()" 
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Select Files
+                    </button>
+                    <span id="fileList" class="text-gray-600"></span>
+                </div>
+            </div>
+
+            <div id="facultySection" class="max-w-md mx-auto {% if not timetables_uploaded %}hidden{% endif %}">
+                <h2 class="text-lg font-semibold mb-4">Generate Faculty Timetable</h2>
+                <div class="flex gap-4 items-center">
+                    <select id="facultySelect" class="form-select block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="">Choose a faculty member...</option>
+                        {% for faculty in faculty_list %}
+                        <option value="{{ faculty }}">{{ faculty }}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="downloadSelectedFaculty()" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            id="downloadBtn" disabled>
+                        Download
+                    </button>
+                </div>
+            </div>
+
+            {% if not timetables_uploaded %}
+            <div class="mt-4 text-center text-gray-600">
+                Please upload department timetables to view faculty list
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('timetableFiles').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            document.getElementById('fileList').textContent = files.map(f => f.name).join(', ');
+            
+            const formData = new FormData();
+            files.forEach(file => {
+                formData.append('files[]', file);
+            });
+            
+            fetch('/upload-dept-timetables', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Upload failed');
+                }
+            });
+        });
+
+        function downloadSelectedFaculty() {
+            const faculty = document.getElementById('facultySelect').value;
+            if (faculty) {
+                window.location.href = `{{ url_for('generate_faculty_timetable', faculty_name='') }}${encodeURIComponent(faculty)}`;
+            }
+        }
+
+        document.getElementById('facultySelect').addEventListener('change', function() {
+            document.getElementById('downloadBtn').disabled = !this.value;
+        });
+    </script>
+</body>
+</html>

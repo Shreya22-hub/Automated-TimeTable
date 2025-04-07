@@ -1,0 +1,41 @@
+Faculty ID,Name,Preferred Days,Preferred Times,Max Hours Per Day
+F001,Dr. Abdul Wahid,Friday;Thursday,09:00-11:00;14:00-16:00,5
+F002,Dr. Animesh Chaturvedi,Thursday;Monday,10:00-12:00;15:00-17:00,4
+F003,Dr. Animesh Roy,Wednesday;Tuesday,09:00-11:00;14:00-16:00,5
+F004,Dr. Anand P B,Friday;Tuesday,11:00-13:00;14:00-16:00,4
+F005,Dr. Anushree Kini,Thursday;Monday,10:00-12:00;13:00-15:00,5
+F006,Dr. Aswath,Tuesday;Monday,09:00-12:00;14:00-16:00,5
+F007,Dr. Bharatesh Chakravarthi,Friday;Wednesday,09:00-11:00;14:00-16:00,5
+F008,Dr. C B Akki,Tuesday;Thursday,11:00-13:00;15:00-17:00,5
+F009,Dr. Chandrika Kamath,Monday;Wednesday,09:00-11:00;13:00-15:00,5
+F010,Dr. Chinmayananda,Monday;Tuesday,10:00-12:00;14:00-16:00,5
+F011,Dr. Deepak,Friday;Wednesday,09:00-11:00;14:00-16:00,5
+F012,Dr. Dibyajyoti Guha,Thursday;Friday,10:00-12:00;13:00-15:00,5
+F013,Dr. Girish GN,Monday;Thursday,09:00-12:00;14:00-16:00,5
+F014,Dr. Jagadeesha R Bhat,Thursday;Friday,10:00-13:00;15:00-17:00,5
+F015,Dr. Jagadish D N,Thursday;Monday,11:00-13:00;14:00-16:00,5
+F016,Dr. Krishendu Ghosh,Tuesday;Friday,09:00-11:00;14:00-16:00,5
+F017,Dr. Lakshman,Tuesday;Monday,09:00-12:00;13:00-15:00,5
+F018,Dr. Malay,Friday;Monday,10:00-12:00;14:00-16:00,5
+F019,Dr. Manjunath KV,Monday;Thursday,09:00-11:00;14:00-16:00,5
+F020,Dr. Nataraj,Wednesday;Tuesday,11:00-13:00;15:00-17:00,5
+F021,Dr. Navyashree,Tuesday;Monday,09:00-12:00;13:00-15:00,5
+F022,Dr. Pavan,Thursday;Monday,10:00-12:00;14:00-16:00,5
+F023,Dr. Prabhu Prasad B M,Friday;Thursday,09:00-11:00;14:00-16:00,5
+F024,Dr. Prakash Pawar,Tuesday;Monday,11:00-13:00;15:00-17:00,5
+F025,Dr. Rajendra Hegadi,Thursday;Wednesday,10:00-12:00;13:00-15:00,5
+F026,Dr. Rajesh,Friday;Tuesday,09:00-12:00;14:00-16:00,5
+F027,Dr. Ramesh Athe,Thursday;Wednesday,09:00-11:00;14:00-16:00,5
+F028,Dr. Shirshendu Layek,Monday;Friday,11:00-13:00;15:00-17:00,5
+F029,Dr. Siddharth R,Thursday;Wednesday,10:00-12:00;13:00-15:00,5
+F030,Dr. Sibasankar Padhy,Friday;Thursday,09:00-11:00;14:00-16:00,5
+F031,Dr. Somen Bhattacharjee,Wednesday;Tuesday,10:00-12:00;15:00-17:00,5
+F032,Dr. Suvadip Hazra,Thursday;Friday,09:00-12:00;14:00-16:00,5
+F033,Dr. Sunil C K,Monday;Tuesday,11:00-13:00;14:00-16:00,5
+F034,Dr. Sunil Kumar P V,Friday;Thursday,09:00-11:00;14:00-16:00,5
+F035,Dr. Sadhvi,Tuesday;Wednesday,10:00-12:00;13:00-15:00,5
+F036,Dr. Utkarsh Khaire,Thursday;Wednesday,09:00-12:00;14:00-16:00,5
+F037,Guest Faculty,Tuesday;Thursday,10:00-13:00;15:00-17:00,5
+F038,Dr. Vivekraj,Monday;Wednesday,11:00-13:00;14:00-16:00,5
+F039,Dr. Pramod,Friday;Tuesday,09:00-11:00;14:00-16:00,5
+F040,Dr. Sandesh,Thursday;Monday,09:00-12:00;13:00-15:00,5

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeTable Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-roboto">
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-sm border-b border-slate-200 fixed w-full z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    TimeTable Generator
+                </h1>
+                <div class="flex items-center gap-4">
+                    <button class="text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="ml-2">Help</span>
+                    </button>
+                    <button class="text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-cog"></i>
+                        <span class="ml-2">Settings</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex space-x-4">
+                <a href="{{ url_for('view_courses') }}" class="text-blue-600 hover:text-blue-800">View Courses</a>
+                <a href="{{ url_for('faculty_view') }}" class="text-blue-600 hover:text-blue-800">Faculty View</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-12">
+        <div class="container mx-auto px-4">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert-banner mb-6">
+                            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-3"></i>
+                                    <span>{{ message }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Upload Card -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg shadow-blue-500/5 p-6 hover:shadow-blue-500/10 transition-shadow">
+                        <div class="space-y-6">
+                            <!-- File Upload Zone -->
+                            <div class="upload-zone">
+                                <label class="file-drop-zone block">
+                                    <div class="flex flex-col items-center p-8 border-2 border-dashed border-blue-200 rounded-xl 
+                                                hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer">
+                                        <div class="bg-blue-50 p-4 rounded-full mb-4">
+                                            <i class="fas fa-cloud-upload-alt text-4xl text-blue-500"></i>
+                                        </div>
+                                        <h3 class="text-lg font-medium text-slate-700 mb-2">Upload Files</h3>
+                                        <p class="text-sm text-slate-500 text-center mb-4">
+                                            Drag and drop your files here or click to browse
+                                        </p>
+                                        <span class="text-xs text-slate-400">
+                                            Supported formats: .xlsx, .csv
+                                        </span>
+                                        <input type='file' id="file" accept=".xlsx,.csv" class="hidden" multiple />
+                                    </div>
+                                </label>
+                                <div id="file-info" class="mt-4 p-4 bg-slate-50 rounded-lg hidden">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-excel text-green-500 mr-3"></i>
+                                        <span class="file-name text-slate-600"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex flex-wrap gap-4 justify-center">
+                                <button type="button" id="uploadAllBtn" 
+                                    class="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg
+                                           hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25
+                                           hover:shadow-blue-500/50 hover:-translate-y-0.5">
+                                    <i class="fas fa-upload mr-2"></i>
+                                    Upload All Files
+                                </button>
+                                <button type="button" id="uploadCoursesBtn" class="action-button">
+                                    <i class="fas fa-book mr-2"></i>
+                                    Upload Courses
+                                </button>
+                                <button type="button" id="uploadRoomsBtn" class="action-button">
+                                    <i class="fas fa-building mr-2"></i>
+                                    Upload Rooms
+                                </button>
+                                <button type="button" id="uploadBatchBtn" class="action-button">
+                                    <i class="fas fa-users mr-2"></i>
+                                    Upload Batches
+                                </button>
+                                <!-- Add Reserved Slots Upload Button -->
+                                <button type="button" id="uploadReservedBtn" class="action-button">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    Upload Reserved Slots
+                                </button>
+                                <button type="button" id="generateBtn" 
+                                    class="hidden px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg
+                                           hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/25
+                                           hover:shadow-green-500/50 hover:-translate-y-0.5">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    Generate Timetables
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions Card -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-lg shadow-blue-500/5 p-6">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                                <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                            </div>
+                            <h2 class="text-xl font-semibold text-slate-800">Quick Guide</h2>
+                        </div>
+                        <ol class="space-y-6">
+                            <li class="flex">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 font-semibold mr-4">1</span>
+                                <div>
+                                    <h3 class="font-medium text-slate-700 mb-1">Prepare Files</h3>
+                                    <p class="text-sm text-slate-500">Ensure your Excel/CSV files are in the correct format</p>
+                                </div>
+                            </li>
+                            <li class="flex">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 font-semibold mr-4">2</span>
+                                <div>
+                                    <h3 class="font-medium text-slate-700 mb-1">Upload Data</h3>
+                                    <p class="text-sm text-slate-500">Upload course, room, and batch information</p>
+                                </div>
+                            </li>
+                            <li class="flex">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 font-semibold mr-4">3</span>
+                                <div>
+                                    <h3 class="font-medium text-slate-700 mb-1">Generate</h3>
+                                    <p class="text-sm text-slate-500">Click generate and wait for the timetables</p>
+                                </div>
+                            </li>
+                            <li class="flex">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 font-semibold mr-4">4</span>
+                                <div>
+                                    <h3 class="font-medium text-slate-700 mb-1">Download</h3>
+                                    <p class="text-sm text-slate-500">Get your generated timetables in Excel format</p>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Table Section -->
+            <div id="coursesSection" class="hidden mt-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800">Uploaded Courses</h2>
+                        <div class="flex gap-4">
+                            <select id="departmentFilter" class="form-select">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept }}">{{ dept }}</option>
+                                {% endfor %}
+                            </select>
+                            <select id="semesterFilter" class="form-select">
+                                <option value="">All Semesters</option>
+                                {% for sem in semesters %}
+                                <option value="{{ sem }}">Semester {{ sem }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto" id="coursesTable">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="px-4 py-2">Department</th>
+                                    <th class="px-4 py-2">Semester</th>
+                                    <th class="px-4 py-2">Course Code</th>
+                                    <th class="px-4 py-2">Course Name</th>
+                                    <th class="px-4 py-2">Faculty</th>
+                                    <th class="px-4 py-2">L</th>
+                                    <th class="px-4 py-2">T</th>
+                                    <th class="px-4 py-2">P</th>
+                                    <th class="px-4 py-2">S</th>
+                                    <th class="px-4 py-2">C</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr class="hover:bg-gray-50" data-department="{{ course.Department }}" data-semester="{{ course.Semester }}">
+                                    <td class="border px-4 py-2">{{ course.Department }}</td>
+                                    <td class="border px-4 py-2">{{ course.Semester }}</td>
+                                    <td class="border px-4 py-2">{{ course['Course Code'] }}</td>
+                                    <td class="border px-4 py-2">{{ course['Course Name'] }}</td>
+                                    <td class="border px-4 py-2">{{ course.Faculty }}</td>
+                                    <td class="border px-4 py-2">{{ course.L }}</td>
+                                    <td class="border px-4 py-2">{{ course.T }}</td>
+                                    <td class="border px-4 py-2">{{ course.P }}</td>
+                                    <td class="border px-4 py-2">{{ course.S }}</td>
+                                    <td class="border px-4 py-2">{{ course.C }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="allFiles" accept=".xlsx,.csv" multiple class="hidden">
+    <input type="file" id="courseFile" accept=".xlsx" class="hidden">
+    <input type="file" id="roomFile" accept=".csv" class="hidden">
+    <input type="file" id="batchFile" accept=".csv" class="hidden">
+    <form id="generateForm" action="{{ url_for('generate') }}" method="post" class="hidden"></form>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

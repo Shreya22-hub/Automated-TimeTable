@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Timetables - Timetable Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <nav class="mb-8 flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="text-blue-600 hover:text-blue-800">&larr; Back to Generator</a>
+            <h1 class="text-2xl font-bold">View Timetables</h1>
+            <div></div>
+        </nav>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <!-- Filter Controls -->
+            <div class="flex gap-4 mb-6">
+                <select id="departmentFilter" class="form-select w-48" onchange="updateTimetableView()">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept }}">{{ dept }}</option>
+                    {% endfor %}
+                </select>
+                
+                <select id="semesterFilter" class="form-select w-48" onchange="updateTimetableView()">
+                    <option value="">All Semesters</option>
+                    {% for sem in semesters %}
+                    <option value="{{ sem }}">Semester {{ sem }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Timetable Display -->
+            <div id="timetableContainer" class="overflow-x-auto">
+                {% for timetable in timetables %}
+                <div class="timetable-section mb-8" 
+                     data-department="{{ timetable.department }}"
+                     data-semester="{{ timetable.semester }}">
+                    <h2 class="text-xl font-semibold mb-4">{{ timetable.department }} - Semester {{ timetable.semester }}</h2>
+                    <div class="overflow-x-auto">
+                        {{ timetable.html_content | safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTimetableView() {
+            const selectedDept = document.getElementById('departmentFilter').value;
+            const selectedSem = document.getElementById('semesterFilter').value;
+            const timetableSections = document.querySelectorAll('.timetable-section');
+
+            timetableSections.forEach(section => {
+                const dept = section.dataset.department;
+                const sem = section.dataset.semester;
+                const deptMatch = !selectedDept || dept === selectedDept;
+                const semMatch = !selectedSem || sem === selectedSem;
+                
+                section.style.display = (deptMatch && semMatch) ? 'block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
