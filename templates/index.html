@@ -18,6 +18,10 @@
                     TimeTable Generator
                 </h1>
                 <div class="flex items-center gap-4">
+                    <button id="openDurationSettings" class="text-slate-600 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-clock"></i>
+                        <span class="ml-2">Duration Settings</span>
+                    </button>
                     <button class="text-slate-600 hover:text-blue-600 transition-colors">
                         <i class="fas fa-question-circle"></i>
                         <span class="ml-2">Help</span>
@@ -111,10 +115,18 @@
                                     <i class="fas fa-clock mr-2"></i>
                                     Upload Reserved Slots
                                 </button>
+                                <button type="button" id="uploadFacultyBtn" class="action-button">
+                                    <i class="fas fa-user-tie mr-2"></i>
+                                    Upload Faculty
+                                </button>
+                                <button type="button" id="uploadElectiveBtn" class="action-button">
+                                    <i class="fas fa-list-alt mr-2"></i>
+                                    Upload Electives
+                                </button>
                                 <button type="button" id="generateBtn" 
-                                    class="hidden px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg
-                                           hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/25
-                                           hover:shadow-green-500/50 hover:-translate-y-0.5">
+                                class="hidden px-6 py-3 bg-green-600 text-white rounded-lg
+                                hover:bg-green-700 transition-all shadow-lg shadow-green-500/25
+                                hover:shadow-green-500/50 hover:-translate-y-0.5">
                                     <i class="fas fa-cog mr-2"></i>
                                     Generate Timetables
                                 </button>
@@ -231,7 +243,69 @@
     <input type="file" id="courseFile" accept=".xlsx" class="hidden">
     <input type="file" id="roomFile" accept=".csv" class="hidden">
     <input type="file" id="batchFile" accept=".csv" class="hidden">
+    <input type="file" id="facultyFile" accept=".csv" class="hidden">
     <form id="generateForm" action="{{ url_for('generate') }}" method="post" class="hidden"></form>
+
+    <!-- Add modal at the bottom of body -->
+    <div id="durationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Time Duration Settings</h3>
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Lecture Duration</label>
+                            <span id="lectureDurationDisplay" class="text-sm text-gray-500">1.5 hours (3 slots)</span>
+                        </div>
+                        <input type="range" id="lectureDuration" 
+                               class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+                               min="1" max="8" value="3" step="1">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>30m</span>
+                            <span>4h</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Lab Duration</label>
+                            <span id="labDurationDisplay" class="text-sm text-gray-500">2 hours (4 slots)</span>
+                        </div>
+                        <input type="range" id="labDuration" 
+                               class="w-full h-2 bg-green-100 rounded-lg appearance-none cursor-pointer"
+                               min="2" max="8" value="4" step="1">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>1h</span>
+                            <span>4h</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Tutorial Duration</label>
+                            <span id="tutorialDurationDisplay" class="text-sm text-gray-500">1 hour (2 slots)</span>
+                        </div>
+                        <input type="range" id="tutorialDuration"
+                               class="w-full h-2 bg-purple-100 rounded-lg appearance-none cursor-pointer"
+                               min="1" max="4" value="2" step="1">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>30m</span>
+                            <span>2h</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button id="resetDurations" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                            Reset to Default
+                        </button>
+                        <button id="saveDurations" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

@@ -187,6 +187,66 @@ function handleReservedUpload(file, skipUpdate = true) {
     });
 }
 
+// Faculty file upload handling
+document.getElementById('uploadFacultyBtn').addEventListener('click', function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+            handleFacultyUpload(file, false);
+        }
+    };
+    input.click();
+});
+
+function handleFacultyUpload(file, skipUpdate = true) {
+    return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const btn = document.getElementById('uploadFacultyBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+
+        fetch('/upload-faculty', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response from server');
+                }
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                if (!skipUpdate) {
+                    alert('Faculty data uploaded successfully');
+                }
+                resolve(data);
+            } else {
+                reject(data.error || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            reject(error.message || 'Upload failed');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-tie mr-2"></i>Upload Faculty Data';
+        });
+    });
+}
+
 // Add click handler for reserved slots button
 document.getElementById('uploadReservedBtn').addEventListener('click', function() {
     const input = document.createElement('input');
@@ -199,9 +259,105 @@ document.getElementById('uploadReservedBtn').addEventListener('click', function(
     input.click();
 });
 
+// Add elective file upload handling
+document.getElementById('uploadElectiveBtn').addEventListener('click', function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+            handleElectiveUpload(file, false);
+        }
+    };
+    input.click();
+});
+
+function handleElectiveUpload(file, skipUpdate = true) {
+    return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const btn = document.getElementById('uploadElectiveBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+
+        fetch('/upload-elective-registrations', {  // Updated endpoint URL
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response from server');
+                }
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                if (!skipUpdate) {
+                    alert('Elective registrations uploaded successfully');
+                }
+                resolve(data);
+            } else {
+                reject(data.error || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            reject(error.message || 'Upload failed');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-list-alt mr-2"></i>Upload Electives';
+        });
+    });
+}
+
 // Add generate button handler
-document.getElementById('generateBtn').addEventListener('click', function() {
-    document.getElementById('generateForm').submit();
+document.getElementById('generateBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+    
+    // Get duration values
+    const durations = {
+        lecture_duration: parseInt(document.getElementById('lectureDuration').value),
+        lab_duration: parseInt(document.getElementById('labDuration').value),
+        tutorial_duration: parseInt(document.getElementById('tutorialDuration').value),
+        self_study_duration: 2,
+        break_duration: 1,
+        hour_slots: 2
+    };
+
+    // Save config then generate
+    fetch('/save-config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({duration_constants: durations})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('generateForm').submit();
+        } else {
+            throw new Error(data.error || 'Failed to save configuration');
+        }
+    })
+    .catch(error => {
+        alert('Failed to generate timetables: ' + error.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cog mr-2"></i>Generate Timetables';
+    });
 });
 
 // New function to update courses table
@@ -338,6 +494,10 @@ function handleMultipleFiles(files) {
             return handleCourseUpload(file, false);
         } else if (file.name.toLowerCase().includes('reserved')) {
             return handleReservedUpload(file, false);
+        } else if (file.name.toLowerCase().includes('faculty')) {
+            return handleFacultyUpload(file, false);
+        } else if (file.name.toLowerCase().includes('elective')) {
+            return handleElectiveUpload(file, false);
         }
         return Promise.reject(`Unknown file type: ${file.name}`);
     }))
@@ -361,3 +521,82 @@ function handleMultipleFiles(files) {
         btn.innerHTML = '<i class="fas fa-upload mr-2"></i>Upload All Files';
     });
 }
+
+// Duration Settings Modal
+const durationModal = document.getElementById('durationModal');
+const openDurationBtn = document.getElementById('openDurationSettings');
+const saveDurationsBtn = document.getElementById('saveDurations');
+const resetDurationsBtn = document.getElementById('resetDurations');
+
+// Default durations
+const defaultDurations = {
+    lecture: 3,
+    lab: 4,
+    tutorial: 2
+};
+
+// Open modal
+openDurationBtn.addEventListener('click', () => {
+    durationModal.classList.remove('hidden');
+});
+
+// Close modal when clicking outside
+durationModal.addEventListener('click', (e) => {
+    if (e.target === durationModal) {
+        durationModal.classList.add('hidden');
+    }
+});
+
+// Update duration displays
+function updateDurationDisplay(type, value) {
+    const hours = (value * 30) / 60;
+    const display = document.getElementById(`${type}DurationDisplay`);
+    display.textContent = `${hours} hour${hours !== 1 ? 's' : ''} (${value} slots)`;
+}
+
+// Add input listeners for sliders
+['lecture', 'lab', 'tutorial'].forEach(type => {
+    const slider = document.getElementById(`${type}Duration`);
+    slider.addEventListener('input', () => {
+        updateDurationDisplay(type, slider.value);
+    });
+});
+
+// Reset durations
+resetDurationsBtn.addEventListener('click', () => {
+    Object.entries(defaultDurations).forEach(([type, value]) => {
+        const slider = document.getElementById(`${type}Duration`);
+        slider.value = value;
+        updateDurationDisplay(type, value);
+    });
+});
+
+// Save durations
+saveDurationsBtn.addEventListener('click', () => {
+    const durations = {
+        lecture_duration: parseInt(document.getElementById('lectureDuration').value),
+        lab_duration: parseInt(document.getElementById('labDuration').value),
+        tutorial_duration: parseInt(document.getElementById('tutorialDuration').value),
+        self_study_duration: 2, // Keep default
+        break_duration: 1, // Keep default
+        hour_slots: 2 // Keep constant
+    };
+
+    fetch('/save-config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({duration_constants: durations})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            durationModal.classList.add('hidden');
+        }
+    });
+});
+
+// Initialize displays
+['lecture', 'lab', 'tutorial'].forEach(type => {
+    const slider = document.getElementById(`${type}Duration`);
+    updateDurationDisplay(type, slider.value);
+});

@@ -10,12 +10,19 @@ import shutil
 import glob
 import faculty_timetable as ft
 from openpyxl import load_workbook
+import json
+from datetime import datetime
+from werkzeug.serving import WSGIRequestHandler
+
+# Update server timeout
+WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Required for flash messages
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOADED_TIMETABLE'] = None  # Add new session key for tracking uploaded timetable
+app.config['TIMEOUT'] = 300  # 5 minutes timeout
 
 # Ensure upload folder exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -166,50 +173,102 @@ def upload_reserved():
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
+@app.route('/upload-faculty', methods=['POST'])
+def upload_faculty():
+    if 'file' not in request.files:
+        return {'success': False, 'error': 'No file uploaded'}
+    
+    file = request.files['file']
+    if file.filename == '' or not file.filename.endswith('.csv'):
+        return {'success': False, 'error': 'Invalid file'}
+    
+    try:
+        # Ensure directory exists
+        os.makedirs('tt data', exist_ok=True)
+        file.save('tt data/FACULTY.csv')
+        
+        # Validate faculty data structure
+        df = pd.read_csv('tt data/FACULTY.csv')
+        required_columns = ['Faculty ID', 'Name', 'Preferred Days', 'Preferred Times']
+        if not all(col in df.columns for col in required_columns):
+            return {'success': False, 'error': 'Invalid faculty file format'}
+            
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+@app.route('/upload-elective-registrations', methods=['POST'])
+def upload_elective_registrations():
+    if 'file' not in request.files:
+        return {'success': False, 'error': 'No file uploaded'}
+    
+    file = request.files['file']
+    if file.filename == '' or not file.filename.endswith('.csv'):
+        return {'success': False, 'error': 'Invalid file'}
+    
+    try:
+        # Ensure directory exists
+        os.makedirs('tt data', exist_ok=True)
+        file.save('tt data/elective_registrations.csv')
+        
+        # Validate elective registration data
+        df = pd.read_csv('tt data/elective_registrations.csv')
+        required_columns = ['Course Code', 'Total Students']
+        if not all(col in df.columns for col in required_columns):
+            return {'success': False, 'error': 'Invalid elective registrations file format'}
+            
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
 @app.route('/generate', methods=['POST'])
 def generate():
-    if not os.path.exists('combined.xlsx'):
-        flash('No file uploaded')
+    # Check all required files exist
+    required_files = [
+        ('tt data/combined.csv', 'Course data'),
+        ('tt data/FACULTY.csv', 'Faculty data'),
+        ('tt data/elective_registrations.csv', 'Elective registrations'),
+        ('rooms.csv', 'Room data'),
+        ('tt data/updated_batches.csv', 'Batch data')
+    ]
+    
+    missing_files = []
+    for file_path, file_name in required_files:
+        if not os.path.exists(file_path):
+            missing_files.append(file_name)
+    
+    if missing_files:
+        flash(f'Missing required files: {", ".join(missing_files)}')
         return redirect(url_for('index'))
     
     try:
         # Generate timetables and get list of generated files
         timetable_files = generator.generate_all_timetables()
         
+        if not timetable_files:
+            flash('No timetables were generated')
+            return redirect(url_for('index'))
+
         # Create a unique zip filename using timestamp
         timestamp = int(time.time())
         zip_filename = f'timetables_{timestamp}.zip'
         
-        # Create a zip file containing all timetables
+        # Create zip file containing all timetables
         with ZipFile(zip_filename, 'w') as zipf:
             for file in timetable_files:
                 if os.path.exists(file):
                     zipf.write(file)
                     try:
-                        os.remove(file)  # Remove individual Excel files after adding to zip
+                        os.remove(file)
                     except:
-                        pass  # Ignore if file can't be deleted immediately
-        
-        # Send the zip file
-        response = send_file(
+                        pass
+
+        return send_file(
             zip_filename,
             as_attachment=True,
-            download_name='timetables.zip',
+            download_name='department_timetables.zip',
             mimetype='application/zip'
         )
-        
-        # Set up cleanup after response is sent
-        @response.call_on_close
-        def cleanup():
-            try:
-                if os.path.exists(zip_filename):
-                    os.remove(zip_filename)
-            except:
-                # If file is still locked, schedule it for deletion at next startup
-                with open('cleanup.txt', 'a') as f:
-                    f.write(f'{zip_filename}\n')
-        
-        return response
         
     except Exception as e:
         flash(f'Error generating timetables: {str(e)}')
@@ -226,23 +285,30 @@ def faculty_view():
         timetables_uploaded = True
         try:
             for file in glob.glob(os.path.join(upload_dir, '*.xlsx')):
-                wb = load_workbook(file, read_only=True)
-                for sheet in wb.worksheets:
-                    # Skip sheets that don't look like timetables
-                    if not sheet['A2'].value in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
-                        continue
-                    
-                    # Scan cells for faculty names
-                    for row in range(2, 7):  # 5 days
-                        for col in range(2, sheet.max_column + 1):
-                            cell = sheet.cell(row=row, column=col).value
-                            if cell:
-                                # Faculty name is typically the last line
-                                lines = str(cell).strip().split('\n')
-                                if len(lines) >= 3:
-                                    faculty = lines[2].strip()
-                                    if faculty and faculty != '-':
-                                        faculty_list.add(faculty)
+                try:
+                    wb = load_workbook(file, read_only=True)
+                    for sheet in wb.worksheets:
+                        # Skip sheets that don't look like timetables
+                        if not sheet['A2'].value in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
+                            continue
+                        
+                        # Scan cells for faculty names
+                        for row in range(2, 7):  # 5 days
+                            for col in range(2, sheet.max_column + 1):
+                                cell = sheet.cell(row=row, column=col).value
+                                if cell:
+                                    # Faculty name is typically the last line
+                                    lines = str(cell).strip().split('\n')
+                                    if len(lines) >= 3:
+                                        faculty = lines[2].strip()
+                                        # Clean faculty name to remove any course code prefixes
+                                        faculty = faculty.split('/')[-1].strip()  # Take last name if multiple
+                                        if '(' in faculty:  # Remove anything in parentheses
+                                            faculty = faculty.split('(')[0].strip()
+                                        if faculty and faculty != '-':
+                                            faculty_list.add(faculty)
+                finally:
+                    wb.close()  # Ensure workbook is closed
         except Exception as e:
             print(f"Error reading timetables: {str(e)}")
 
@@ -259,15 +325,32 @@ def upload_dept_timetables():
     upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'timetables')
     
     try:
-        # Clear previous uploads
+        # Clear previous uploads with retry mechanism
         if os.path.exists(upload_dir):
-            shutil.rmtree(upload_dir)
+            retries = 3
+            for _ in range(retries):
+                try:
+                    shutil.rmtree(upload_dir)
+                    break
+                except PermissionError:
+                    time.sleep(1)  # Wait before retry
+            else:
+                return jsonify({'success': False, 'error': 'Could not remove existing files. Please close any open Excel files.'})
+                
         os.makedirs(upload_dir)
         
         # Save new files
         for file in files:
             if file.filename.endswith('.xlsx'):
-                file.save(os.path.join(upload_dir, secure_filename(file.filename)))
+                filepath = os.path.join(upload_dir, secure_filename(file.filename))
+                file.save(filepath)
+                # Verify file is not locked
+                try:
+                    with open(filepath, 'r+b') as f:
+                        pass
+                except PermissionError:
+                    return jsonify({'success': False, 'error': f'File {file.filename} is being used by another process'})
+                    
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -311,6 +394,50 @@ def generate_faculty_timetable(faculty_name):
     except Exception as e:
         flash(f'Error generating timetable: {str(e)}')
         return redirect(url_for('faculty_view'))
+
+@app.route('/download_analytics')
+def download_analytics():
+    try:
+        # Get list of department timetable files
+        timetable_files = glob.glob('timetable_*.xlsx')
+        if not timetable_files:
+            flash('No timetable files found. Please generate timetables first.')
+            return redirect(url_for('faculty_view'))
+            
+        # Generate analytics report
+        from analytics import generate_analytics_report
+        analytics_wb = generate_analytics_report(timetable_files)
+        
+        if not analytics_wb:
+            flash('Error generating analytics report')
+            return redirect(url_for('faculty_view'))
+            
+        # Save workbook to memory
+        from io import BytesIO
+        output = BytesIO()
+        analytics_wb.save(output)
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='timetable_analytics.xlsx'
+        )
+        
+    except Exception as e:
+        flash(f'Error generating analytics: {str(e)}')
+        return redirect(url_for('faculty_view'))
+
+@app.route('/save-config', methods=['POST'])
+def save_config():
+    try:
+        config = request.get_json()
+        with open('config.json', 'w') as f:
+            json.dump(config, f, indent=4)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 # Add cleanup on startup
 def cleanup_old_files():

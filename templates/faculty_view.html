@@ -16,19 +16,23 @@
         <div class="bg-white rounded-lg shadow-lg p-6">
             <div class="mb-8">
                 <h2 class="text-lg font-semibold mb-4">Upload Department Timetables</h2>
-                <div class="flex gap-4 items-center">
-                    <input type="file" id="timetableFiles" accept=".xlsx" multiple class="hidden">
+                <div class="flex gap-4 items-center mb-4">
                     <button onclick="document.getElementById('timetableFiles').click()" 
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                        Select Files
+                            id="uploadBtn"
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="uploadBtnText">Select Files</span>
                     </button>
+                    <span id="uploadStatus" class="text-gray-600 hidden">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Uploading files...
+                    </span>
                     <span id="fileList" class="text-gray-600"></span>
                 </div>
+                <input type="file" id="timetableFiles" accept=".xlsx" multiple class="hidden">
             </div>
 
             <div id="facultySection" class="max-w-md mx-auto {% if not timetables_uploaded %}hidden{% endif %}">
                 <h2 class="text-lg font-semibold mb-4">Generate Faculty Timetable</h2>
-                <div class="flex gap-4 items-center">
+                <div class="flex gap-4 items-center mb-4">
                     <select id="facultySelect" class="form-select block w-full rounded-md border-gray-300 shadow-sm">
                         <option value="">Choose a faculty member...</option>
                         {% for faculty in faculty_list %}
@@ -36,9 +40,18 @@
                         {% endfor %}
                     </select>
                     <button onclick="downloadSelectedFaculty()" 
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                            id="downloadBtn" disabled>
-                        Download
+                            id="downloadBtn"
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="downloadBtnText">Download</span>
+                    </button>
+                </div>
+                
+                <div class="flex justify-center mt-4">
+                    <button onclick="downloadAnalytics()" 
+                            id="analyticsBtn"
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed 
+                            {% if not timetables_uploaded %}opacity-50 cursor-not-allowed{% endif %}">
+                        <span id="analyticsBtnText">Download Analytics Report</span>
                     </button>
                 </div>
             </div>
@@ -54,7 +67,15 @@
     <script>
         document.getElementById('timetableFiles').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
-            document.getElementById('fileList').textContent = files.map(f => f.name).join(', ');
+            const fileList = document.getElementById('fileList');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const uploadBtnText = document.getElementById('uploadBtnText');
+            
+            fileList.textContent = files.map(f => f.name).join(', ');
+            uploadBtn.disabled = true;
+            uploadStatus.classList.remove('hidden');
+            uploadBtnText.textContent = 'Uploading...';
             
             const formData = new FormData();
             files.forEach(file => {
@@ -71,15 +92,52 @@
                     location.reload();
                 } else {
                     alert(data.error || 'Upload failed');
+                    uploadBtn.disabled = false;
+                    uploadStatus.classList.add('hidden');
+                    uploadBtnText.textContent = 'Select Files';
                 }
+            })
+            .catch(error => {
+                alert('Upload failed: ' + error);
+                uploadBtn.disabled = false;
+                uploadStatus.classList.add('hidden');
+                uploadBtnText.textContent = 'Select Files';
             });
         });
 
         function downloadSelectedFaculty() {
             const faculty = document.getElementById('facultySelect').value;
             if (faculty) {
+                const downloadBtn = document.getElementById('downloadBtn');
+                const downloadBtnText = document.getElementById('downloadBtnText');
+                
+                downloadBtn.disabled = true;
+                downloadBtnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Downloading...';
+                
                 window.location.href = `{{ url_for('generate_faculty_timetable', faculty_name='') }}${encodeURIComponent(faculty)}`;
+                
+                // Re-enable button after a delay
+                setTimeout(() => {
+                    downloadBtn.disabled = false;
+                    downloadBtnText.textContent = 'Download';
+                }, 3000);
             }
+        }
+
+        function downloadAnalytics() {
+            const analyticsBtn = document.getElementById('analyticsBtn');
+            const analyticsBtnText = document.getElementById('analyticsBtnText');
+            
+            analyticsBtn.disabled = true;
+            analyticsBtnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating Report...';
+            
+            window.location.href = "{{ url_for('download_analytics') }}";
+            
+            // Re-enable button after a delay
+            setTimeout(() => {
+                analyticsBtn.disabled = false;
+                analyticsBtnText.textContent = 'Download Analytics Report';
+            }, 3000);
         }
 
         document.getElementById('facultySelect').addEventListener('change', function() {
