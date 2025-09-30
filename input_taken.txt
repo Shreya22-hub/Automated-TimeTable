@@ -1,1 +1,127 @@
+import pandas as pd
+
+# -------------------------------
+# 1. Course Data
+# -------------------------------
+course_data = pd.DataFrame([
+    {
+        "Course Code": "MA261",
+        "Course Title": "Differential Equations",
+        "Semester": 3,
+        "Credits (L-T-P-S-C)": "2",
+        "Faculty": "Dr. Anand Barangi",
+        "Lab Assistance": "Shrirang Pujari",
+        "Section": "A & B",
+        "Slot": "C2",
+        "Classroom": "C004",
+        "Elective (Yes/No)": "No",
+        "Completed (Yes/No)": "Yes"
+    },
+    {
+        "Course Code": "MA262",
+        "Course Title": "Multivariate Calculus",
+        "Semester": 3,
+        "Credits (L-T-P-S-C)": "2",
+        "Faculty": "Dr. Sonen Bhattacharjee",
+        "Lab Assistance": None,
+        "Section": "A & B",
+        "Slot": "C2",
+        "Classroom": "C004",
+        "Elective (Yes/No)": "No",
+        "Completed (Yes/No)": "Yes"
+    },
+    {
+        "Course Code": "CS261",
+        "Course Title": "Operating System",
+        "Semester": 3,
+        "Credits (L-T-P-S-C)": "3-0-0-4-2",
+        "Faculty": "Dr. Suvajyoti Harra",
+        "Lab Assistance": None,
+        "Section": "A (Pre Mid: Completed), B (Post Mid: Ongoing)",
+        "Slot": "Z",
+        "Classroom": "C002",
+        "Elective (Yes/No)": "No",
+        "Completed (Yes/No)": "A: Yes, B: No"
+    },
+    {
+        "Course Code": "CS262",
+        "Course Title": "Software Design Tools and Techniques",
+        "Semester": 3,
+        "Credits (L-T-P-S-C)": "2-0-2-0-3",
+        "Faculty": "Dr. Sunil P V (A), Dr. Vivekraj (B)",
+        "Lab Assistance": "Shraddha G, Revankar Gautami (A); Gautami, Madhu R K (B)",
+        "Section": "A & B",
+        "Slot": "B1, L11, L12",
+        "Classroom": "C202, C205, L106, L107",
+        "Elective (Yes/No)": "No",
+        "Completed (Yes/No)": "No"
+    }
+])
+
+# -------------------------------
+# 2. Faculty Availability
+# -------------------------------
+faculty_availability = pd.DataFrame([
+    {"Faculty Name": "Dr. Anand Barangi", "Department": "Mathematics", "Available Days": "Mon, Wed, Fri", "Unavailable Time Slots": "Tue 12:15-12:45"},
+    {"Faculty Name": "Dr. Suvajyoti Harra", "Department": "CSE", "Available Days": "Tue, Thu", "Unavailable Time Slots": "Fri 3-5"},
+    {"Faculty Name": "Dr. Sunil P V", "Department": "CSE", "Available Days": "Mon, Wed", "Unavailable Time Slots": "Thu 1-3"},
+    {"Faculty Name": "Dr. Vivekraj", "Department": "CSE", "Available Days": "Tue, Thu", "Unavailable Time Slots": "Fri 10-12"}
+])
+
+# -------------------------------
+# 3. Classroom Data
+# -------------------------------
+classroom_data = pd.DataFrame([
+    {"Room Number": "C004", "Type": "Classroom", "Capacity": 60, "Facilities": "Projector"},
+    {"Room Number": "C202", "Type": "Classroom", "Capacity": 80, "Facilities": "Projector, Whiteboard"},
+    {"Room Number": "C205", "Type": "Classroom", "Capacity": 80, "Facilities": "Projector, Whiteboard"},
+    {"Room Number": "L106", "Type": "Lab", "Capacity": 40, "Facilities": "Computers"},
+    {"Room Number": "L107", "Type": "Lab", "Capacity": 40, "Facilities": "Computers"}
+])
+
+# -------------------------------
+# 4. Student Data
+# -------------------------------
+student_data = pd.DataFrame([
+    {"Student Roll Number": "24BCS001", "Name": "Student A", "Section": "A", "Batch": "A1", "Semester": 3, "Enrolled Courses": "MA261;CS261;CS262", "Minor": "Cybersecurity", "Special Accommodation": "None"},
+    {"Student Roll Number": "24BCS085", "Name": "Student B", "Section": "B", "Batch": "B1", "Semester": 3, "Enrolled Courses": "MA262;CS261;CS263", "Minor": "Generative AI", "Special Accommodation": "None"}
+])
+
+# -------------------------------
+# 5. Exam Data
+# -------------------------------
+exam_data = pd.DataFrame([
+    {"Course Code": "MA261", "Exam Type": "Theory", "Exam Duration (minutes)": 120, "Preferred Exam Date": "2025-12-05", "Alternate Exam Date": "2025-12-10"},
+    {"Course Code": "CS261", "Exam Type": "Theory", "Exam Duration (minutes)": 180, "Preferred Exam Date": "2025-12-12", "Alternate Exam Date": "2025-12-15"}
+])
+
+# -------------------------------
+# 6. Invigilator Data
+# -------------------------------
+invigilator_data = pd.DataFrame([
+    {"Invigilator Name": "Dr. Vivekraj", "Available Days": "Mon-Fri", "Unavailable Time Slots": "Tue 3-4"},
+    {"Invigilator Name": "Dr. Prabh Prasad B M", "Available Days": "Mon, Wed, Fri", "Unavailable Time Slots": ""}
+])
+
+# -------------------------------
+# 7. Timeslot Data
+# -------------------------------
+timeslot_data = pd.DataFrame([
+    {"Slot ID": "C2", "Day": "Monday", "Start Time": "10:00", "End Time": "11:00", "Is Lab (Yes/No)": "No"},
+    {"Slot ID": "L11", "Day": "Tuesday", "Start Time": "14:00", "End Time": "16:00", "Is Lab (Yes/No)": "Yes"},
+    {"Slot ID": "Z", "Day": "Friday", "Start Time": "15:00", "End Time": "16:00", "Is Lab (Yes/No)": "No"}
+])
+
+# -------------------------------
+# 8. Export all templates to CSV
+# -------------------------------
+course_data.to_csv("course_data.csv", index=False)
+faculty_availability.to_csv("faculty_availability.csv", index=False)
+classroom_data.to_csv("classroom_data.csv", index=False)
+student_data.to_csv("student_data.csv", index=False)
+exam_data.to_csv("exam_data.csv", index=False)
+invigilator_data.to_csv("invigilator_data.csv", index=False)
+timeslot_data.to_csv("timeslot_data.csv", index=False)
+
+print("All CSV templates created and populated with sample timetable data.")
 
