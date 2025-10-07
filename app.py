@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for, session, jsonify
 import os
 from werkzeug.utils import secure_filename
-import timetable_generator_0 as generator
+import timetable_generator as generator
 import pandas as pd
 import csv
 from zipfile import ZipFile
@@ -394,41 +394,39 @@ def generate_faculty_timetable(faculty_name):
     except Exception as e:
         flash(f'Error generating timetable: {str(e)}')
         return redirect(url_for('faculty_view'))
-
 @app.route('/download_analytics')
 def download_analytics():
     try:
-        # Get list of department timetable files
+        import glob
+        from io import BytesIO
+        from flask import send_file, jsonify
+        from analytics import generate_analytics_report
+
+        # Get list of timetable files
         timetable_files = glob.glob('timetable_*.xlsx')
         if not timetable_files:
-            flash('No timetable files found. Please generate timetables first.')
-            return redirect(url_for('faculty_view'))
-            
+            return jsonify({"error": "No timetable files found. Please generate timetables first."}), 400
+
         # Generate analytics report
-        from analytics import generate_analytics_report
         analytics_wb = generate_analytics_report(timetable_files)
-        
         if not analytics_wb:
-            flash('Error generating analytics report')
-            return redirect(url_for('faculty_view'))
-            
+            return jsonify({"error": "Error generating analytics report"}), 500
+
         # Save workbook to memory
-        from io import BytesIO
         output = BytesIO()
         analytics_wb.save(output)
         output.seek(0)
-        
+
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name='timetable_analytics.xlsx'
         )
-        
-    except Exception as e:
-        flash(f'Error generating analytics: {str(e)}')
-        return redirect(url_for('faculty_view'))
 
+    except Exception as e:
+        return jsonify({"error": f"Error generating analytics: {str(e)}"}), 500
+        
 @app.route('/save-config', methods=['POST'])
 def save_config():
     try:

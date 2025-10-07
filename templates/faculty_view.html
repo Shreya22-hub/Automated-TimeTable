@@ -5,104 +5,432 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faculty Timetable Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        /* Animated gradient background */
+        .animated-gradient {
+            background: linear-gradient(-45deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Glass morphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Card hover effect */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Button gradient */
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+            transition: left 0.5s;
+        }
+        
+        .btn-gradient:hover::before {
+            left: 100%;
+        }
+        
+        /* Upload zone styling */
+        .upload-zone {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            border-radius: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+        
+        .upload-zone:hover::before {
+            opacity: 0.3;
+        }
+        
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Back button animation */
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            transform: translateX(-4px);
+        }
+        
+        /* Select dropdown styling */
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        /* Pulse animation for icons */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+            }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        /* Info card styling */
+        .info-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+        }
+        
+        /* Spinner animation */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="animated-gradient min-h-screen">
     <div class="container mx-auto px-4 py-8">
-        <nav class="mb-8 flex justify-between items-center">
-            <a href="{{ url_for('index') }}" class="text-blue-600 hover:text-blue-800">&larr; Back to Generator</a>
-            <h1 class="text-2xl font-bold">Faculty Timetable Generator</h1>
+        <!-- Navigation Header -->
+        <nav class="glass rounded-2xl shadow-2xl p-6 mb-8 fade-in">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <a href="{{ url_for('index') }}" class="back-btn flex items-center gap-2 text-purple-600 hover:text-purple-800 font-semibold text-lg">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Generator</span>
+                </a>
+                <h1 class="text-3xl font-bold gradient-text flex items-center gap-3">
+                    <i class="fas fa-chalkboard-teacher float-animation"></i>
+                    Faculty Timetable Generator
+                </h1>
+                <div></div>
+            </div>
         </nav>
 
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <div class="mb-8">
-                <h2 class="text-lg font-semibold mb-4">Upload Department Timetables</h2>
-                <div class="flex gap-4 items-center mb-4">
+        <!-- Main Content -->
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Upload Section -->
+            <div class="lg:col-span-2">
+                <div class="glass rounded-3xl shadow-2xl p-8 card-hover fade-in">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="bg-gradient-to-br from-purple-100 to-blue-100 p-4 rounded-2xl pulse-glow">
+                            <i class="fas fa-cloud-upload-alt text-purple-600 text-3xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold gradient-text">Upload Department Timetables</h2>
+                            <p class="text-gray-600 mt-1">Upload Excel files containing department schedules</p>
+                        </div>
+                    </div>
+
+                    <!-- Upload Zone -->
+                    <div class="upload-zone mb-6">
+                        <label class="cursor-pointer block">
+                            <div class="flex flex-col items-center p-12 border-2 border-dashed border-purple-300 rounded-2xl 
+                                        hover:border-purple-500 hover:bg-purple-50/50 transition-all duration-300 group">
+                                <div class="bg-gradient-to-br from-purple-100 to-blue-100 p-6 rounded-full mb-6 group-hover:scale-110 transition-transform duration-300 float-animation">
+                                    <i class="fas fa-file-excel text-5xl text-purple-600"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-3">Select Department Timetables</h3>
+                                <p class="text-base text-gray-600 text-center mb-4">
+                                    Click to browse or drag and drop Excel files here
+                                </p>
+                                <span class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full text-sm font-semibold">
+                                    <i class="fas fa-file-upload mr-2"></i>
+                                    Supported: .xlsx
+                                </span>
+                            </div>
+                            <input type="file" id="timetableFiles" accept=".xlsx" multiple class="hidden">
+                        </label>
+                    </div>
+
+                    <!-- File List & Status -->
+                    <div id="fileInfo" class="hidden">
+                        <div class="glass rounded-xl p-4 mb-4">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-gray-800">Files Selected</p>
+                                    <p id="fileList" class="text-sm text-gray-600"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Status -->
+                    <div id="uploadStatus" class="hidden info-card rounded-xl p-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-spinner spinner text-purple-600 text-2xl"></i>
+                            <div>
+                                <p class="font-semibold text-gray-800">Uploading Files...</p>
+                                <p class="text-sm text-gray-600">Please wait while we process your timetables</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
                     <button onclick="document.getElementById('timetableFiles').click()" 
                             id="uploadBtn"
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span id="uploadBtnText">Select Files</span>
-                    </button>
-                    <span id="uploadStatus" class="text-gray-600 hidden">
-                        <i class="fas fa-spinner fa-spin mr-2"></i>Uploading files...
-                    </span>
-                    <span id="fileList" class="text-gray-600"></span>
-                </div>
-                <input type="file" id="timetableFiles" accept=".xlsx" multiple class="hidden">
-            </div>
-
-            <div id="facultySection" class="max-w-md mx-auto {% if not timetables_uploaded %}hidden{% endif %}">
-                <h2 class="text-lg font-semibold mb-4">Generate Faculty Timetable</h2>
-                <div class="flex gap-4 items-center mb-4">
-                    <select id="facultySelect" class="form-select block w-full rounded-md border-gray-300 shadow-sm">
-                        <option value="">Choose a faculty member...</option>
-                        {% for faculty in faculty_list %}
-                        <option value="{{ faculty }}">{{ faculty }}</option>
-                        {% endfor %}
-                    </select>
-                    <button onclick="downloadSelectedFaculty()" 
-                            id="downloadBtn"
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span id="downloadBtnText">Download</span>
-                    </button>
-                </div>
-                
-                <div class="flex justify-center mt-4">
-                    <button onclick="downloadAnalytics()" 
-                            id="analyticsBtn"
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed 
-                            {% if not timetables_uploaded %}opacity-50 cursor-not-allowed{% endif %}">
-                        <span id="analyticsBtnText">Download Analytics Report</span>
+                            class="w-full px-8 py-4 btn-gradient text-white rounded-xl font-semibold shadow-xl 
+                                   hover:shadow-2xl hover:-translate-y-1 transition-all transform disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-upload mr-3 text-lg"></i>
+                        <span id="uploadBtnText">Select Files to Upload</span>
                     </button>
                 </div>
             </div>
 
-            {% if not timetables_uploaded %}
-            <div class="mt-4 text-center text-gray-600">
-                Please upload department timetables to view faculty list
+            <!-- Instructions Card -->
+            <div class="lg:col-span-1">
+                <div class="glass rounded-3xl shadow-2xl p-8 card-hover fade-in">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-gradient-to-br from-purple-100 to-blue-100 p-4 rounded-2xl mr-4">
+                            <i class="fas fa-lightbulb text-purple-600 text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold gradient-text">Instructions</h2>
+                    </div>
+                    <ol class="space-y-6">
+                        <li class="flex items-start group">
+                            <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-500 text-white font-bold mr-4 shadow-lg group-hover:scale-110 transition-transform">1</span>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Upload Timetables</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">Select all department timetable Excel files</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start group">
+                            <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white font-bold mr-4 shadow-lg group-hover:scale-110 transition-transform">2</span>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Select Faculty</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">Choose a faculty member from the list</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start group">
+                            <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold mr-4 shadow-lg group-hover:scale-110 transition-transform">3</span>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Download</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">Get the individual faculty timetable</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start group">
+                            <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold mr-4 shadow-lg group-hover:scale-110 transition-transform">4</span>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Analytics</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">Download comprehensive analytics report</p>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
             </div>
-            {% endif %}
         </div>
+
+        <!-- Faculty Selection Section -->
+        <div id="facultySection" class="mt-8 fade-in {% if not timetables_uploaded %}hidden{% endif %}">
+            <div class="glass rounded-3xl shadow-2xl p-8 card-hover">
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-8">
+                        <div class="inline-block bg-gradient-to-br from-purple-100 to-blue-100 p-6 rounded-full mb-4 pulse-glow">
+                            <i class="fas fa-user-graduate text-purple-600 text-4xl"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold gradient-text mb-2">Generate Faculty Timetable</h2>
+                        <p class="text-gray-600">Select a faculty member to generate their personalized schedule</p>
+                    </div>
+
+                    <!-- Faculty Selection -->
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            <i class="fas fa-user-tie text-purple-600 mr-2"></i>
+                            Select Faculty Member
+                        </label>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <select id="facultySelect" class="custom-select w-full px-4 py-4 glass rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none text-gray-700 font-medium">
+                                    <option value="">Choose a faculty member...</option>
+                                    {% for faculty in faculty_list %}
+                                    <option value="{{ faculty }}">{{ faculty }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button onclick="downloadSelectedFaculty()" 
+                                    id="downloadBtn"
+                                    disabled
+                                    class="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold 
+                                           hover:from-blue-600 hover:to-indigo-700 transition-all shadow-xl hover:shadow-2xl 
+                                           hover:-translate-y-1 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+                                <i class="fas fa-download mr-2"></i>
+                                <span id="downloadBtnText">Download</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative my-8">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t-2 border-gray-200"></div>
+                        </div>
+                        <div class="relative flex justify-center">
+                            <span class="bg-white px-4 text-sm text-gray-500 font-medium">OR</span>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Button -->
+                    <div class="text-center">
+                        <button onclick="downloadAnalytics()" 
+                                id="analyticsBtn"
+                                class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold 
+                                       hover:from-green-600 hover:to-emerald-700 transition-all shadow-xl hover:shadow-2xl 
+                                       hover:-translate-y-1 transform disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-chart-line mr-3 text-lg"></i>
+                            <span id="analyticsBtnText">Download Analytics Report</span>
+                        </button>
+                        <p class="text-sm text-gray-600 mt-3">Get comprehensive workload and schedule analytics for all faculty</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        {% if not timetables_uploaded %}
+        <div class="mt-8 fade-in">
+            <div class="glass rounded-3xl shadow-2xl p-12 text-center">
+                <div class="bg-gradient-to-br from-purple-100 to-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 float-animation">
+                    <i class="fas fa-inbox text-6xl text-purple-600"></i>
+                </div>
+                <h3 class="text-3xl font-bold gradient-text mb-3">No Timetables Uploaded Yet</h3>
+                <p class="text-gray-600 text-lg mb-6 max-w-xl mx-auto">
+                    Upload department timetables to generate individual faculty schedules and analytics reports
+                </p>
+                <button onclick="document.getElementById('timetableFiles').click()" 
+                        class="inline-flex items-center gap-3 px-8 py-4 btn-gradient text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all transform">
+                    <i class="fas fa-cloud-upload-alt text-xl"></i>
+                    Upload Department Timetables
+                </button>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <script>
         document.getElementById('timetableFiles').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
             const fileList = document.getElementById('fileList');
+            const fileInfo = document.getElementById('fileInfo');
             const uploadBtn = document.getElementById('uploadBtn');
             const uploadStatus = document.getElementById('uploadStatus');
             const uploadBtnText = document.getElementById('uploadBtnText');
             
-            fileList.textContent = files.map(f => f.name).join(', ');
-            uploadBtn.disabled = true;
-            uploadStatus.classList.remove('hidden');
-            uploadBtnText.textContent = 'Uploading...';
-            
-            const formData = new FormData();
-            files.forEach(file => {
-                formData.append('files[]', file);
-            });
-            
-            fetch('/upload-dept-timetables', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.error || 'Upload failed');
+            if (files.length > 0) {
+                fileList.textContent = files.map(f => f.name).join(', ');
+                fileInfo.classList.remove('hidden');
+                uploadBtn.disabled = true;
+                uploadStatus.classList.remove('hidden');
+                uploadBtnText.textContent = 'Uploading...';
+                
+                const formData = new FormData();
+                files.forEach(file => {
+                    formData.append('files[]', file);
+                });
+                
+                fetch('/upload-dept-timetables', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Upload failed');
+                        uploadBtn.disabled = false;
+                        uploadStatus.classList.add('hidden');
+                        uploadBtnText.textContent = 'Select Files to Upload';
+                    }
+                })
+                .catch(error => {
+                    alert('Upload failed: ' + error);
                     uploadBtn.disabled = false;
                     uploadStatus.classList.add('hidden');
-                    uploadBtnText.textContent = 'Select Files';
-                }
-            })
-            .catch(error => {
-                alert('Upload failed: ' + error);
-                uploadBtn.disabled = false;
-                uploadStatus.classList.add('hidden');
-                uploadBtnText.textContent = 'Select Files';
-            });
+                    uploadBtnText.textContent = 'Select Files to Upload';
+                });
+            }
         });
 
         function downloadSelectedFaculty() {
@@ -112,36 +440,51 @@
                 const downloadBtnText = document.getElementById('downloadBtnText');
                 
                 downloadBtn.disabled = true;
-                downloadBtnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Downloading...';
+                downloadBtnText.innerHTML = '<i class="fas fa-spinner spinner mr-2"></i>Downloading...';
                 
                 window.location.href = `{{ url_for('generate_faculty_timetable', faculty_name='') }}${encodeURIComponent(faculty)}`;
                 
-                // Re-enable button after a delay
                 setTimeout(() => {
                     downloadBtn.disabled = false;
-                    downloadBtnText.textContent = 'Download';
+                    downloadBtnText.innerHTML = '<i class="fas fa-download mr-2"></i>Download';
                 }, 3000);
             }
         }
+    // Download Analytics Report
+    function downloadAnalytics() {
+        const btn = document.getElementById('analyticsBtn');
+        const btnText = document.getElementById('analyticsBtnText');
 
-        function downloadAnalytics() {
-            const analyticsBtn = document.getElementById('analyticsBtn');
-            const analyticsBtnText = document.getElementById('analyticsBtnText');
-            
-            analyticsBtn.disabled = true;
-            analyticsBtnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating Report...';
-            
-            window.location.href = "{{ url_for('download_analytics') }}";
-            
-            // Re-enable button after a delay
-            setTimeout(() => {
-                analyticsBtn.disabled = false;
-                analyticsBtnText.textContent = 'Download Analytics Report';
-            }, 3000);
-        }
+        // Disable button and show loading
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>Generating Report...';
 
-        document.getElementById('facultySelect').addEventListener('change', function() {
-            document.getElementById('downloadBtn').disabled = !this.value;
+        fetch('/download_analytics')
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to generate analytics report');
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'timetable_analytics.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(err => {
+                alert('Failed to download analytics: ' + err.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-chart-line mr-3 text-lg"></i><span id="analyticsBtnText">Download Analytics Report</span>';
+            });
+    }         
+        document.getElementById('facultySelect')?.addEventListener('change', function() {
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.disabled = !this.value;
         });
     </script>
 </body>
