@@ -1,0 +1,59 @@
+No timetables uploaded yet
+
+Setup: uploads/timetables folder does not exist.
+
+Expected Outcome:
+
+Flash message: No timetables uploaded yet
+
+User redirected to faculty_view.
+
+No timetable files found
+
+Setup: uploads/timetables exists but contains no .xlsx files.
+
+Expected Outcome:
+
+Flash message: No timetable files found
+
+User redirected to faculty_view.
+
+No faculty selected
+
+Setup: faculty_name is empty or whitespace.
+
+Expected Outcome:
+
+Flash message: No faculty selected
+
+User redirected to faculty_view.
+
+Failed to generate timetable
+
+Setup: ft.generate_faculty_timetable() returns None or fails internally.
+
+Expected Outcome:
+
+Flash message: Failed to generate timetable
+
+User redirected to faculty_view.
+
+Successful timetable generation
+
+Setup: All required timetable files exist, faculty_name is valid, and generator returns a workbook.
+
+Expected Outcome:
+
+Excel file saved as faculty_timetable_<faculty_name>.xlsx
+
+File sent as downloadable attachment with correct mimetype.
+
+Unexpected exception during process
+
+Setup: Any file I/O or runtime error occurs.
+
+Expected Outcome:
+
+Flash message: Error generating timetable: <exception_message>
+
+User redirected to faculty_view.
