@@ -4,6 +4,16 @@ const dropZone = document.querySelector('.file-drop-zone');
 const fileInfo = document.getElementById('file-info');
 const fileName = fileInfo.querySelector('.file-name');
 
+document.body.classList.add("intro-blur");
+
+setTimeout(() => {
+  const overlay = document.getElementById("introOverlay");
+  overlay.style.opacity = "0";
+  overlay.style.transition = "opacity 1s ease-in-out";
+  setTimeout(() => overlay.remove(), 1000);
+  document.body.classList.remove("intro-blur");
+}, 2500);
+
 // Course file upload handling
 document.getElementById('uploadCoursesBtn').addEventListener('click', function() {
     document.getElementById('courseFile').click();

@@ -13,6 +13,9 @@ from openpyxl import load_workbook
 import json
 from datetime import datetime
 from werkzeug.serving import WSGIRequestHandler
+import numpy as np
+from io import BytesIO
+from analytics import generate_analytics_report
 
 # Update server timeout
 WSGIRequestHandler.protocol_version = "HTTP/1.1"
@@ -28,6 +31,20 @@ app.config['TIMEOUT'] = 300  # 5 minutes timeout
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+# Utility function to convert NumPy types to native Python types
+def convert_numpy(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_numpy(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy(i) for i in obj]
+    return obj
+
 @app.route('/')
 def index():
     courses_uploaded = os.path.exists('tt data/combined.csv')
@@ -40,8 +57,6 @@ def index():
             df = pd.read_csv('tt data/combined.csv', encoding='utf-8-sig')
             courses = df.to_dict('records')
             departments = sorted(df['Department'].unique())
-            
-            # Custom sorting for semesters 
             semesters = sorted(df['Semester'].unique())
         except Exception as e:
             print(f"Error loading data: {str(e)}")
@@ -50,16 +65,18 @@ def index():
     # Return JSON if requested
     if request.args.get('fetch_courses'):
         return jsonify({
-            'courses': courses,
-            'departments': departments,
-            'semesters': semesters
+            'courses': convert_numpy(courses),
+            'departments': convert_numpy(departments),
+            'semesters': convert_numpy(semesters)
         })
     
-    return render_template('index.html', 
-                         courses_uploaded=courses_uploaded,
-                         courses=courses,
-                         departments=departments,
-                         semesters=semesters)
+    return render_template(
+        'index.html', 
+        courses_uploaded=courses_uploaded,
+        courses=courses,
+        departments=departments,
+        semesters=semesters
+    )
 
 @app.route('/view-courses')
 def view_courses():
@@ -110,92 +127,218 @@ def upload_file():
 def upload_rooms():
     if 'file' not in request.files:
         return {'success': False, 'error': 'No file uploaded'}
-    
+
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.csv'):
-        return {'success': False, 'error': 'Invalid file'}
-    
+    if file.filename == '':
+        return {'success': False, 'error': 'No file selected'}
+
+    filename = file.filename.lower()
+    if not filename.endswith(('.csv', '.xlsx', '.xls')):
+        return {'success': False, 'error': 'Invalid file type. Must be CSV or Excel (.xlsx/.xls).'}
+
     try:
-        file.save('rooms.csv')
-        # Validate room data
-        with open('rooms.csv', 'r') as f:
-            reader = csv.DictReader(f)
-            rooms = list(reader)
+        os.makedirs('tt data', exist_ok=True)
+        filepath = os.path.join('tt data', 'rooms' + os.path.splitext(file.filename)[1])
+        file.save(filepath)
+
+        # Load file
+        if filename.endswith('.csv'):
+            try:
+                df = pd.read_csv(filepath, encoding='utf-8-sig')
+            except pd.errors.EmptyDataError:
+                return {'success': False, 'error': 'rooms.csv is empty'}
+            except pd.errors.ParserError:
+                return {'success': False, 'error': 'rooms.csv has parsing errors'}
+        else:
+            try:
+                df = pd.read_excel(filepath)
+            except Exception:
+                return {'success': False, 'error': 'Error reading Excel file'}
+
+        # Drop completely blank rows
+        df.dropna(how='all', inplace=True)
+        if df.empty:
+            return {'success': False, 'error': 'No data found in rooms file'}
+
+        # Check required headers
+        required_columns = ['id', 'capacity', 'roomNumber']
+        if not all(col in df.columns for col in required_columns):
+            return {'success': False, 'error': 'Missing required columns in rooms file'}
+
+        # Row-level validation
+        for i, row in df.iterrows():
+            if row[required_columns].isnull().any():
+                return {'success': False, 'error': f'Incomplete data in row {i + 2}'}
+            try:
+                int(row['capacity'])
+            except ValueError:
+                return {'success': False, 'error': f'Invalid capacity value in row {i + 2}'}
+
         return {'success': True}
+
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        return {'success': False, 'error': f'Unexpected error: {str(e)}'}
 
 @app.route('/upload-batches', methods=['POST'])
 def upload_batches():
     if 'file' not in request.files:
         return {'success': False, 'error': 'No file uploaded'}
-    
+
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.csv'):
-        return {'success': False, 'error': 'Invalid file'}
-    
+    if file.filename == '':
+        return {'success': False, 'error': 'No file selected'}
+
+    if not file.filename.lower().endswith(('.csv', '.xlsx', '.xls')):
+        return {'success': False, 'error': 'Invalid file type. Must be CSV or Excel (.xlsx/.xls).'}
+
     try:
-        # Ensure directory exists
         os.makedirs('tt data', exist_ok=True)
-        file.save('tt data/updated_batches.csv')
-        
-        # Validate batch data
-        df = pd.read_csv('tt data/updated_batches.csv')
+        filepath = os.path.join('tt data', 'updated_batches' + os.path.splitext(file.filename)[1])
+        file.save(filepath)
+
+        # Load file
+        if file.filename.lower().endswith('.csv'):
+            try:
+                df = pd.read_csv(filepath, encoding='utf-8-sig')
+            except pd.errors.EmptyDataError:
+                return {'success': False, 'error': 'updated_batches.csv is empty'}
+            except pd.errors.ParserError:
+                return {'success': False, 'error': 'updated_batches.csv has parsing errors'}
+        else:
+            try:
+                df = pd.read_excel(filepath)
+            except Exception:
+                return {'success': False, 'error': 'Error reading Excel file'}
+
+        # Drop completely blank rows
+        df.dropna(how='all', inplace=True)
+        if df.empty:
+            return {'success': False, 'error': 'No data found in updated_batches file'}
+
+        # Check required columns
         required_columns = ['Department', 'Semester', 'Total_Students', 'MaxBatchSize']
         if not all(col in df.columns for col in required_columns):
-            return {'success': False, 'error': 'Invalid batch file format'}
-            
+            return {'success': False, 'error': 'Missing required columns in updated_batches file'}
+
+        # Row-level validation for missing values or invalid numbers
+        for i, row in df.iterrows():
+            if row[required_columns].isnull().any():
+                return {'success': False, 'error': f'Incomplete data in row {i + 2}'}
+            try:
+                int(row['Total_Students'])
+                int(row['MaxBatchSize'])
+            except ValueError:
+                return {'success': False, 'error': f'Invalid numeric value in row {i + 2}'}
+
         return {'success': True}
+
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        return {'success': False, 'error': f'Unexpected error: {str(e)}'}
 
 @app.route('/upload-reserved', methods=['POST'])
 def upload_reserved():
     if 'file' not in request.files:
         return {'success': False, 'error': 'No file uploaded'}
-    
+
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.csv'):
-        return {'success': False, 'error': 'Invalid file'}
-    
+    if file.filename == '':
+        return {'success': False, 'error': 'No file selected'}
+
+    filename = file.filename.lower()
+    if not filename.endswith(('.csv', '.xlsx', '.xls')):
+        return {'success': False, 'error': 'Invalid file type. Must be CSV or Excel (.xlsx/.xls).'}
+
     try:
-        # Ensure directory exists
         os.makedirs('tt data', exist_ok=True)
-        file.save('tt data/reserved_slots.csv')
-        
-        # Validate reserved slots data
-        df = pd.read_csv('tt data/reserved_slots.csv')
+        filepath = os.path.join('tt data', 'reserved_slots' + os.path.splitext(file.filename)[1])
+        file.save(filepath)
+
+        # Load file
+        if filename.endswith('.csv'):
+            try:
+                df = pd.read_csv(filepath, encoding='utf-8-sig')
+            except pd.errors.EmptyDataError:
+                return {'success': False, 'error': 'reserved_slots file is empty'}
+            except pd.errors.ParserError:
+                return {'success': False, 'error': 'reserved_slots file has parsing errors'}
+        else:
+            try:
+                df = pd.read_excel(filepath)
+            except Exception:
+                return {'success': False, 'error': 'Error reading Excel file'}
+
+        # Drop completely blank rows
+        df.dropna(how='all', inplace=True)
+        if df.empty:
+            return {'success': False, 'error': 'No data found in reserved slots file'}
+
+        # Check required headers
         required_columns = ['Day', 'Start Time', 'End Time', 'Semester']
         if not all(col in df.columns for col in required_columns):
-            return {'success': False, 'error': 'Invalid reserved slots file format'}
-            
+            return {'success': False, 'error': 'Missing required columns in reserved slots file'}
+
+        # Row-level validation
+        for i, row in df.iterrows():
+            if row[required_columns].isnull().any():
+                return {'success': False, 'error': f'Incomplete data in row {i + 2}'}
+
         return {'success': True}
+
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        return {'success': False, 'error': f'Unexpected error: {str(e)}'}
 
 @app.route('/upload-faculty', methods=['POST'])
 def upload_faculty():
     if 'file' not in request.files:
         return {'success': False, 'error': 'No file uploaded'}
-    
+
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.csv'):
-        return {'success': False, 'error': 'Invalid file'}
-    
+    if file.filename == '':
+        return {'success': False, 'error': 'No file selected'}
+
+    filename = file.filename.lower()
+    if not filename.endswith(('.csv', '.xlsx', '.xls')):
+        return {'success': False, 'error': 'Invalid file type. Must be CSV or Excel (.xlsx/.xls).'}
+
     try:
         # Ensure directory exists
         os.makedirs('tt data', exist_ok=True)
-        file.save('tt data/FACULTY.csv')
-        
-        # Validate faculty data structure
-        df = pd.read_csv('tt data/FACULTY.csv')
+        filepath = os.path.join('tt data', 'FACULTY' + os.path.splitext(filename)[1])
+        file.save(filepath)
+
+        # Load file
+        if filename.endswith('.csv'):
+            try:
+                df = pd.read_csv(filepath, encoding='utf-8-sig')
+            except pd.errors.EmptyDataError:
+                return {'success': False, 'error': 'FACULTY file is empty'}
+            except pd.errors.ParserError:
+                return {'success': False, 'error': 'FACULTY CSV has parsing errors'}
+        else:
+            try:
+                df = pd.read_excel(filepath)
+            except Exception:
+                return {'success': False, 'error': 'Error reading Excel file'}
+
+        # Drop completely blank rows
+        df.dropna(how='all', inplace=True)
+        if df.empty:
+            return {'success': False, 'error': 'No data found in FACULTY file'}
+
+        # Check required columns
         required_columns = ['Faculty ID', 'Name', 'Preferred Days', 'Preferred Times']
         if not all(col in df.columns for col in required_columns):
-            return {'success': False, 'error': 'Invalid faculty file format'}
-            
+            return {'success': False, 'error': 'FACULTY file is missing required headers'}
+
+        # Check for partially blank rows
+        for i, row in df.iterrows():
+            if row.isnull().any():
+                return {'success': False, 'error': f'Incomplete data in row {i + 2}'}
+
         return {'success': True}
+
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        return {'success': False, 'error': f'Unexpected error: {str(e)}'}
 
 @app.route('/upload-elective-registrations', methods=['POST'])
 def upload_elective_registrations():
@@ -203,23 +346,42 @@ def upload_elective_registrations():
         return {'success': False, 'error': 'No file uploaded'}
     
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.csv'):
+    if file.filename == '':
         return {'success': False, 'error': 'Invalid file'}
-    
+
+    filename = file.filename.lower()
     try:
         # Ensure directory exists
         os.makedirs('tt data', exist_ok=True)
-        file.save('tt data/elective_registrations.csv')
         
-        # Validate elective registration data
-        df = pd.read_csv('tt data/elective_registrations.csv')
-        required_columns = ['Course Code', 'Total Students']
-        if not all(col in df.columns for col in required_columns):
-            return {'success': False, 'error': 'Invalid elective registrations file format'}
-            
+        # Save file
+        filepath = os.path.join('tt data', 'elective_registrations' + os.path.splitext(filename)[1])
+        file.save(filepath)
+
+        # Load file
+        if filename.endswith('.csv'):
+            try:
+                df = pd.read_csv(filepath, encoding='utf-8-sig')
+            except pd.errors.EmptyDataError:
+                return {'success': False, 'error': 'File is empty'}
+            except pd.errors.ParserError:
+                return {'success': False, 'error': 'CSV parsing error'}
+        elif filename.endswith(('.xlsx', '.xls')):
+            try:
+                df = pd.read_excel(filepath)
+            except Exception:
+                return {'success': False, 'error': 'Error reading Excel file'}
+        else:
+            return {'success': False, 'error': 'Unsupported file type. Must be CSV or Excel'}
+
+        # Check for empty data
+        if df.empty:
+            return {'success': False, 'error': 'No data found in the file'}
+
         return {'success': True}
+
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        return {'success': False, 'error': f'Unexpected error: {str(e)}'}
 
 @app.route('/generate', methods=['POST'])
 def generate():
@@ -320,10 +482,13 @@ def faculty_view():
 def upload_dept_timetables():
     if 'files[]' not in request.files:
         return jsonify({'success': False, 'error': 'No files uploaded'})
-        
+
     files = request.files.getlist('files[]')
+    if not files:
+        return jsonify({'success': False, 'error': 'No files selected'})
+
     upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'timetables')
-    
+
     try:
         # Clear previous uploads with retry mechanism
         if os.path.exists(upload_dir):
@@ -336,24 +501,32 @@ def upload_dept_timetables():
                     time.sleep(1)  # Wait before retry
             else:
                 return jsonify({'success': False, 'error': 'Could not remove existing files. Please close any open Excel files.'})
-                
-        os.makedirs(upload_dir)
-        
+
+        os.makedirs(upload_dir, exist_ok=True)
+
         # Save new files
         for file in files:
-            if file.filename.endswith('.xlsx'):
-                filepath = os.path.join(upload_dir, secure_filename(file.filename))
-                file.save(filepath)
-                # Verify file is not locked
-                try:
-                    with open(filepath, 'r+b') as f:
-                        pass
-                except PermissionError:
-                    return jsonify({'success': False, 'error': f'File {file.filename} is being used by another process'})
-                    
+            if not file.filename.lower().endswith(('.xlsx', '.xls')):
+                return jsonify({'success': False, 'error': f'Unsupported file type: {file.filename}. Only Excel files allowed.'})
+
+            filepath = os.path.join(upload_dir, secure_filename(file.filename))
+            file.save(filepath)
+
+            # Verify file is not locked
+            try:
+                with open(filepath, 'r+b') as f:
+                    pass
+            except PermissionError:
+                return jsonify({'success': False, 'error': f'File {file.filename} is being used by another process'})
+
+        # Check if no valid Excel files were uploaded
+        if not os.listdir(upload_dir):
+            return jsonify({'success': False, 'error': 'No valid Excel files uploaded'})
+
         return jsonify({'success': True})
+
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({'success': False, 'error': f'Unexpected error: {str(e)}'})
 
 @app.route('/generate-faculty-timetable/<faculty_name>')
 def generate_faculty_timetable(faculty_name):
@@ -394,14 +567,10 @@ def generate_faculty_timetable(faculty_name):
     except Exception as e:
         flash(f'Error generating timetable: {str(e)}')
         return redirect(url_for('faculty_view'))
+
 @app.route('/download_analytics')
 def download_analytics():
     try:
-        import glob
-        from io import BytesIO
-        from flask import send_file, jsonify
-        from analytics import generate_analytics_report
-
         # Get list of timetable files
         timetable_files = glob.glob('timetable_*.xlsx')
         if not timetable_files:
