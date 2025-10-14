@@ -1,0 +1,45 @@
+This function is used in the timetable software to upload a CSV file containing faculty details. It verifies whether a file has been uploaded, checks that the file extension is .csv, and ensures that the CSV contains the required columns (Faculty ID, Name, Preferred Days, Preferred Times). If all checks pass, the file is saved, and a success response is returned. Otherwise, an appropriate error message is returned.
+
+Input Description:
+
+An HTTP POST request with the file field containing a CSV file.
+
+The CSV file must contain the following columns:
+
+Faculty ID – Unique ID of the faculty (e.g., F101)
+
+Name – Name of the faculty (e.g., Dr. Sharma)
+
+Preferred Days – Faculty’s preferred working days (e.g., Monday;Wednesday)
+
+Preferred Times – Faculty’s preferred timings (e.g., 10:00-12:00)
+
+Output Description:
+
+JSON response is returned:
+
+Success:
+
+{"success": True}
+
+
+Failure cases:
+
+File not uploaded:
+
+{"success": False, "error": "No file uploaded"}
+
+
+Incorrect file type:
+
+{"success": False, "error": "Invalid file"}
+
+
+Invalid CSV format / missing required columns:
+
+{"success": False, "error": "Invalid faculty file format"}
+
+
+Any unexpected error:
+
+{"success": False, "error": "<exception_message>"}

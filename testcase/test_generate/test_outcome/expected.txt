@@ -1,0 +1,40 @@
+1. Missing Required Files
+
+Setup: One or more of the required files (combined.csv, FACULTY.csv, elective_registrations.csv, rooms.csv, updated_batches.csv) are missing.
+
+Expected Outcome:
+
+Flash message on UI:
+
+2 Missing required files: <list of missing files>
+
+
+User is redirected to index page.
+
+No ZIP file is created.
+
+3. All Files Exist but No Timetables Generated
+
+Setup: All required files are present, but generator.generate_all_timetables() returns an empty list.
+
+Expected Outcome:
+
+Flash message on UI:
+
+4. No timetables were generated
+
+
+User is redirected to index page.
+
+5. No ZIP file is created.
+
+All Files Exist and Timetables Successfully Generated
+
+Setup: All required files are present, and generator returns a list of timetable file paths.
+
+Expected Outcome:
+
+ZIP file created with all generated timetable files.
+
+Original individual timetable files removed (if possible).
+

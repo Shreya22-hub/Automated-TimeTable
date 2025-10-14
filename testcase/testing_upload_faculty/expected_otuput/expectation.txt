@@ -1,0 +1,57 @@
+1. No file provided
+
+
+
+Expected output:
+
+{'success': False, 'error': 'No file uploaded'}
+
+
+Reason: if 'file' not in request.files block trigger
+
+2. Wrong file type
+
+
+
+Expected output:
+
+{'success': False, 'error': 'Invalid file'}
+
+
+
+3. Empty CSV file
+
+
+Expected output:
+
+{'success': False, 'error': 'Invalid faculty file format'}
+
+
+Reason: Required columns check fail hoga
+
+4. CSV missing required columns
+
+
+Faculty ID,Name
+F101,Dr. Sharma
+
+
+Expected output:
+
+{'success': False, 'error': 'Invalid faculty file format'}
+
+
+Reason: Required columns ['Faculty ID', 'Name', 'Preferred Days', 'Preferred Times'] missing
+
+5. Correct CSV format
+
+Setup: Proper CSV with all required columns:
+
+Faculty ID,Name,Preferred Days,Preferred Times
+F101,Dr. Sharma,Monday;Wednesday,10:00-12:00
+F102,Dr. Mehta,Tuesday,14:00-16:00
+
+
+Expected output:
+
+{'success': True}

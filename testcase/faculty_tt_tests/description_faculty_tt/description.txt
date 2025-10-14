@@ -1,0 +1,9 @@
+his function generates a personalized timetable for a specific faculty member. It first checks if the uploaded timetables exist in the uploads/timetables directory. If the directory or files are missing, a flash message is displayed and the user is redirected to the faculty view page.
+
+It then validates the faculty_name input. If no name is provided, it flashes an error and redirects.
+
+Next, it calls the timetable generator function ft.generate_faculty_timetable(faculty_name, timetable_files) to generate the faculty’s timetable from the available timetable files.
+
+If the generator fails, an error message is displayed. If successful, the timetable workbook is saved as an Excel file with a sanitized filename (faculty_timetable_<faculty_name>.xlsx) and sent to the user as a downloadable attachment.
+
+Any unexpected errors during file access, saving, or sending are caught by a try-except block, and a flash message is displayed.

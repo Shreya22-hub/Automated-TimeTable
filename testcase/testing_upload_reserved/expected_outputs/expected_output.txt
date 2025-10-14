@@ -1,0 +1,37 @@
+Invalid input test:
+
+No file provided
+
+1. request.files = {}
+
+   Expected: {'success': False, 'error': 'No file uploaded'}
+
+
+2. Wrong file type (e.g., .txt)
+
+file.filename = 'test.txt'
+
+    Expected: {'success': False, 'error': 'Invalid file'}
+
+
+3. Empty CSV file
+
+ create empty reserved_slots.csv manually
+
+   Expected: {'success': False, 'error': 'Invalid reserved slots file format'}
+
+
+4. CSV missing required columns
+
+Name,Time
+Alice,10:00
+
+    Expected: {'success': False, 'error': 'Invalid reserved slots file format'}
+
+
+5. Correct CSV format
+
+Day,Start Time,End Time,Semester
+Monday,10:00,11:00,2
+
+    Expected: {'success': True}
