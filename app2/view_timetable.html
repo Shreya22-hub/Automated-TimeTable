@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Timetable - Exam Timetable Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 95%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: #e0e0e0;
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .sheet-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .sheet-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+        
+        td.editable {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        td.editable:hover {
+            background: #f0f0f0;
+        }
+        
+        td.editing {
+            padding: 0;
+        }
+        
+        td input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        tr:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Branch color coding */
+        .cse-cell { background-color: #FFC7CE !important; }
+        .dsai-cell { background-color: #C6EFCE !important; }
+        .ece-cell { background-color: #FFEB9C !important; }
+        .common-cell { background-color: #BDD7EE !important; }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .edit-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Exam Timetable Viewer</h1>
+            <div class="header-buttons">
+                <a href="/download" class="btn btn-primary">📥 Download Excel</a>
+                {% if is_admin %}
+                <a href="/" class="btn btn-secondary">🏠 Admin Home</a>
+                <a href="/logout" class="btn btn-secondary">🚪 Logout</a>
+                {% else %}
+                <a href="/public" class="btn btn-secondary">🏠 Back</a>
+                <a href="/login" class="btn btn-secondary">🔐 Admin Login</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="alert alert-info">
+                {% if is_admin %}
+                <strong>👨‍💼 Admin Mode:</strong> Click any cell to edit its content. Changes are saved automatically to the Excel file.
+                {% else %}
+                <strong>👁️ View Only Mode:</strong> You are viewing the timetable as a regular user. Editing is disabled. 
+                <a href="/login" style="color: #0c5460; font-weight: bold;">Login as admin</a> to edit.
+                {% endif %}
+            </div> any cell to edit its content. Changes are saved automatically to the Excel file.
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="tabs" id="tabsContainer"></div>
+            
+            <div id="sheetsContainer"></div>
+            
+            <div class="edit-indicator" id="editIndicator">
+                ✓ Changes saved successfully!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sheetsData = {{ sheets | tojson }};
+        const isAdmin = {{ is_admin | tojson }};
+        let currentSheet = null;
+        
+        // Initialize tabs and sheets
+        function initializeTimetable() {
+            const tabsContainer = document.getElementById('tabsContainer');
+            const sheetsContainer = document.getElementById('sheetsContainer');
+            
+            const sheetNames = Object.keys(sheetsData);
+            
+            sheetNames.forEach((sheetName, index) => {
+                // Create tab
+                const tab = document.createElement('button');
+                tab.className = 'tab' + (index === 0 ? ' active' : '');
+                tab.textContent = sheetName;
+                tab.onclick = () => switchSheet(sheetName);
+                tabsContainer.appendChild(tab);
+                
+                // Create sheet content
+                const sheetDiv = document.createElement('div');
+                sheetDiv.className = 'sheet-content' + (index === 0 ? ' active' : '');
+                sheetDiv.id = `sheet-${sheetName}`;
+                
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+                
+                const table = createTable(sheetName, sheetsData[sheetName]);
+                tableContainer.appendChild(table);
+                sheetDiv.appendChild(tableContainer);
+                
+                sheetsContainer.appendChild(sheetDiv);
+            });
+            
+            currentSheet = sheetNames[0];
+        }
+        
+        // Create table from data
+        function createTable(sheetName, data) {
+            const table = document.createElement('table');
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            data.columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            data.data.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                row.forEach((cell, colIndex) => {
+                    const td = document.createElement('td');
+                    td.textContent = cell || '';
+                    td.className = 'editable ' + getCellColorClass(cell);
+                    td.onclick = () => editCell(td, sheetName, rowIndex, colIndex);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            
+            return table;
+        }
+        
+        // Get color class based on cell content
+        function getCellColorClass(cellValue) {
+            const val = String(cellValue).toUpperCase();
+            if (val.includes('CSE')) return 'cse-cell';
+            if (val.includes('DSAI')) return 'dsai-cell';
+            if (val.includes('ECE')) return 'ece-cell';
+            if (val.includes('ALL') || val.includes('COMMON')) return 'common-cell';
+            return '';
+        }
+        
+        // Switch between sheets
+        function switchSheet(sheetName) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.textContent === sheetName);
+            });
+            
+            // Update sheet content
+            document.querySelectorAll('.sheet-content').forEach(sheet => {
+                sheet.classList.toggle('active', sheet.id === `sheet-${sheetName}`);
+            });
+            
+            currentSheet = sheetName;
+        }
+        
+        // Edit cell
+        function editCell(td, sheetName, rowIndex, colIndex) {
+            if (td.classList.contains('editing')) return;
+            
+            const originalValue = td.textContent;
+            td.classList.add('editing');
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = originalValue;
+            input.onblur = () => saveCell(td, input, sheetName, rowIndex, colIndex, originalValue);
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                } else if (e.key === 'Escape') {
+                    td.textContent = originalValue;
+                    td.classList.remove('editing');
+                }
+            };
+            
+            td.textContent = '';
+            td.appendChild(input);
+            input.focus();
+            input.select();
+        }
+        
+        // Save cell changes
+        async function saveCell(td, input, sheetName, rowIndex, colIndex, originalValue) {
+            const newValue = input.value;
+            
+            if (newValue === originalValue) {
+                td.textContent = originalValue;
+                td.classList.remove('editing');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/update_cell', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet: sheetName,
+                        row: rowIndex,
+                        col: colIndex,
+                        value: newValue
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    td.textContent = newValue;
+                    td.className = 'editable ' + getCellColorClass(newValue);
+                    showEditIndicator();
+                    
+                    // Update local data
+                    sheetsData[sheetName].data[rowIndex][colIndex] = newValue;
+                } else {
+                    alert('Error saving: ' + result.error);
+                    td.textContent = originalValue;
+                }
+            } catch (error) {
+                alert('Error saving changes: ' + error);
+                td.textContent = originalValue;
+            }
+            
+            td.classList.remove('editing');
+        }
+        
+        // Show edit indicator
+        function showEditIndicator() {
+            const indicator = document.getElementById('editIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeTimetable);
+    </script>
+</body>
+</html>

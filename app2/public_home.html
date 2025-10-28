@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Timetable - Exam Timetable Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 50px 40px;
+            text-align: center;
+        }
+        
+        .icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 35px;
+            margin: 10px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            color: #555;
+        }
+        
+        .info-box li::before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .no-timetable {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .no-timetable h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .no-timetable p {
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Exam Timetable Viewer</h1>
+            <p>View exam schedules, room allocations, and faculty assignments</p>
+        </div>
+        
+        <div class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% if has_timetable %}
+                <div class="icon">📅</div>
+                <div class="message">
+                    <strong>Exam timetable is available!</strong><br>
+                    You can view the complete schedule, room allocations, and download the Excel file.
+                </div>
+                
+                <div>
+                    <a href="/view" class="btn btn-primary">👁️ View Timetable</a>
+                    <a href="/download" class="btn btn-secondary">📥 Download Excel</a>
+                </div>
+                
+                <div class="info-box">
+                    <h3>📋 What you can view:</h3>
+                    <ul>
+                        <li>Complete exam schedule for all years and branches</li>
+                        <li>Room-wise allocation with faculty assignments</li>
+                        <li>Student distribution and seating arrangements</li>
+                        <li>Free slots and available rooms</li>
+                        <li>Color-coded view by branch (CSE, DSAI, ECE)</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-info" style="text-align: left; margin-top: 30px;">
+                    <strong>ℹ️ Note:</strong> You are viewing as a regular user. 
+                    Editing is disabled. If you need to make changes, please 
+                    <a href="/login" style="color: #0c5460; font-weight: bold;">login as admin</a>.
+                </div>
+            {% else %}
+                <div class="icon">⚠️</div>
+                <div class="no-timetable">
+                    <h3>No Timetable Available</h3>
+                    <p>The exam timetable has not been generated yet. Please contact the administrator to generate the timetable.</p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <a href="/login" class="btn btn-primary">🔐 Admin Login</a>
+                </div>
+                
+                <div class="info-box">
+                    <h3>👨‍💼 Are you an admin?</h3>
+                    <ul>
+                        <li>Login to generate new timetables</li>
+                        <li>Upload required files (8 Excel/CSV files)</li>
+                        <li>Configure branch slot allocations</li>
+                        <li>Edit existing timetables</li>
+                        <li>Download and manage schedules</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

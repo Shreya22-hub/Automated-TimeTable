@@ -492,80 +492,115 @@
 
     <!-- Duration Modal -->
     <div id="durationModal" class="fixed inset-0 bg-black bg-opacity-60 hidden overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
-        <div class="relative top-20 mx-auto p-8 border-0 w-full max-w-md shadow-2xl rounded-3xl glass">
-            <div class="mt-3">
+    <div class="relative top-20 mx-auto p-8 border-0 w-full max-w-md shadow-2xl rounded-3xl glass">
+        <div class="mt-3">
+                <!-- Modal Header -->
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-2xl font-bold gradient-text">Time Duration Settings</h3>
-                    <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <!-- Added id="closeDurationModal" -->
+                    <button id="closeDurationModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
-                <div class="space-y-8">
-                    <div>
-                        <div class="flex justify-between mb-3">
-                            <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-book-open text-blue-600"></i>
-                                Lecture Duration
-                            </label>
-                            <span id="lectureDurationDisplay" class="badge-success">1.5 hours (3 slots)</span>
-                        </div>
-                        <input type="range" id="lectureDuration" 
-                               class="w-full h-3 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full appearance-none cursor-pointer"
-                               min="1" max="8" value="3" step="1">
-                        <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
-                            <span>30 min</span>
-                            <span>4 hours</span>
-                        </div>
+            <div class="space-y-8">
+                <!-- Lecture Duration -->
+                <div>
+                    <div class="flex justify-between mb-3">
+                        <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-book-open text-blue-600"></i>
+                            Lecture Duration
+                        </label>
+                        <span id="lectureDurationDisplay" class="badge-success">1.5 hours (3 slots)</span>
                     </div>
+                    <input type="range" id="lectureDuration" 
+                           class="w-full h-3 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full appearance-none cursor-pointer"
+                           min="1" max="8" value="3" step="1">
+                    <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
+                        <span>30 min</span>
+                        <span>4 hours</span>
+                    </div>
+                </div>
 
-                    <div>
-                        <div class="flex justify-between mb-3">
-                            <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-flask text-green-600"></i>
-                                Lab Duration
-                            </label>
-                            <span id="labDurationDisplay" class="badge-success">2 hours (4 slots)</span>
-                        </div>
-                        <input type="range" id="labDuration" 
-                               class="w-full h-3 bg-gradient-to-r from-green-200 to-green-300 rounded-full appearance-none cursor-pointer"
-                               min="2" max="8" value="4" step="1">
-                        <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
-                            <span>1 hour</span>
-                            <span>4 hours</span>
-                        </div>
+                <!-- Lab Duration -->
+                <div>
+                    <div class="flex justify-between mb-3">
+                        <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-flask text-green-600"></i>
+                            Lab Duration
+                        </label>
+                        <span id="labDurationDisplay" class="badge-success">2 hours (4 slots)</span>
                     </div>
+                    <input type="range" id="labDuration" 
+                           class="w-full h-3 bg-gradient-to-r from-green-200 to-green-300 rounded-full appearance-none cursor-pointer"
+                           min="2" max="8" value="4" step="1">
+                    <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
+                        <span>1 hour</span>
+                        <span>4 hours</span>
+                    </div>
+                </div>
 
-                    <div>
-                        <div class="flex justify-between mb-3">
-                            <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-chalkboard text-purple-600"></i>
-                                Tutorial Duration
-                            </label>
-                            <span id="tutorialDurationDisplay" class="badge-success">1 hour (2 slots)</span>
-                        </div>
-                        <input type="range" id="tutorialDuration"
-                               class="w-full h-3 bg-gradient-to-r from-purple-200 to-purple-300 rounded-full appearance-none cursor-pointer"
-                               min="1" max="4" value="2" step="1">
-                        <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
-                            <span>30 min</span>
-                            <span>2 hours</span>
-                        </div>
+                <!-- Tutorial Duration -->
+                <div>
+                    <div class="flex justify-between mb-3">
+                        <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-chalkboard text-purple-600"></i>
+                            Tutorial Duration
+                        </label>
+                        <span id="tutorialDurationDisplay" class="badge-success">1 hour (2 slots)</span>
                     </div>
+                    <input type="range" id="tutorialDuration"
+                           class="w-full h-3 bg-gradient-to-r from-purple-200 to-purple-300 rounded-full appearance-none cursor-pointer"
+                           min="1" max="4" value="2" step="1">
+                    <div class="flex justify-between text-xs text-gray-500 mt-2 font-medium">
+                        <span>30 min</span>
+                        <span>2 hours</span>
+                    </div>
+                </div>
 
-                    <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
-                        <button id="resetDurations" class="px-6 py-3 glass rounded-xl text-gray-700 hover:bg-gray-100 transition-all font-medium">
-                            <i class="fas fa-undo mr-2"></i>
-                            Reset to Default
-                        </button>
-                        <button id="saveDurations" class="px-6 py-3 btn-gradient text-white rounded-xl hover:shadow-xl transition-all font-semibold">
-                            <i class="fas fa-save mr-2"></i>
-                            Save Changes
-                        </button>
+                <!-- Morning Break -->
+                <div>
+                    <div class="flex justify-between mb-3">
+                        <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-coffee text-yellow-500"></i>
+                            Morning Break
+                        </label>
+                        <span id="morningBreakDisplay" class="badge-success">10:30 - 11:00</span>
                     </div>
+                    <div class="flex gap-2">
+                        <input type="time" id="morningBreakStart" class="w-1/2 p-1 border rounded" value="10:30">
+                        <input type="time" id="morningBreakEnd" class="w-1/2 p-1 border rounded" value="11:00">
+                    </div>
+                </div>
+
+                <!-- Lunch Break -->
+                <div>
+                    <div class="flex justify-between mb-3">
+                        <label class="block text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-utensils text-red-500"></i>
+                            Lunch Break
+                        </label>
+                        <span id="lunchBreakDisplay" class="badge-success">12:30 - 13:30</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="time" id="lunchBreakStart" class="w-1/2 p-1 border rounded" value="12:30">
+                        <input type="time" id="lunchBreakEnd" class="w-1/2 p-1 border rounded" value="13:30">
+                    </div>
+                </div>
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                    <button id="resetDurations" class="px-6 py-3 glass rounded-xl text-gray-700 hover:bg-gray-100 transition-all font-medium">
+                        <i class="fas fa-undo mr-2"></i>
+                        Reset to Default
+                    </button>
+                    <button id="saveDurations" class="px-6 py-3 btn-gradient text-white rounded-xl hover:shadow-xl transition-all font-semibold">
+                        <i class="fas fa-save mr-2"></i>
+                        Save Changes
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

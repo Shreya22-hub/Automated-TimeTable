@@ -1,45 +1,49 @@
-:: Description
+# 🕒 Automated Time Table Generator
 
-The Automated Timetable Generator is a Python-based web application designed to simplify and automate the process of creating academic timetables for colleges and universities. It efficiently generates timetables for different branches, semesters, and faculties by analyzing course details, subject codes, and faculty availability.
+This is a **Flask-based web application** that allows you to generate both **Exam** and **Class Time Tables** seamlessly in one place.  
+You can run both modules together for smooth and automated scheduling.
 
-The system minimizes manual effort and errors by allowing administrators to upload subject and faculty data, process it, and automatically produce optimized timetables. It ensures that no faculty is double-booked and that classroom and slot conflicts are avoided, resulting in a perfectly balanced schedule.
+---
 
-:: Key Features
+## 🚀 Features
 
-:: Automated Timetable Generation: Generates timetables for all branches and faculties with a single click.
+- Generate **Exam Time Table** and **Class Time Table** at once  
+- Simple and interactive **web interface**  
+- Built using **Flask (Python)**  
+- Upload input data (like subjects, teachers, and schedules)  
+- Automatically generates optimized timetables  
+- Option to **download or view** generated timetables  
 
-:: Faculty Timetable View: Each faculty can view their individual schedule.
+---
 
-::  Branch-wise Timetables: Supports multiple departments and semesters simultaneously.
+## 🛠️ Tech Stack
 
-:: CSV/Excel Upload Support: Admins can upload subject and faculty details directly from .csv or .xlsx files.
+| Component | Technology |
+|------------|-------------|
+| Backend | Python (Flask) |
+| Frontend | HTML, CSS, Bootstrap |
+| Database | Using Excel as DataBase|
+| Deployment | Localhost (can be deployed on Heroku, Render, etc.) |
 
-:: Conflict-Free Scheduling: Automatically detects and avoids overlapping class or faculty slots.
+---
 
-:: Data Storage: Saves generated timetables for easy retrieval and updates.
+## 📂 Project Structure
 
-:: Web-Based Interface: Simple and intuitive dashboard for admins and faculty members.
+TimeTable-Generator/
+│
+├── app.py # Flask main file
+├── app2.py # Flask Exam file
+├── run_both.py # Runs both Exam and Class modules together
+├── templates/ # HTML templates
+├── static/ # CSS, JS, and assets
+├── uploads/ # Uploaded input files
+├── uploadsExam/ # Uploaded input files for exam time table
+└── README.md # Project documentation
 
-:: Tech Stack
+Run both modules (Exam and Class) together:
+--> python run_both.py
+You will find 127.0.0.1:5000 --> Class Time Table
+127.0.0.1:5001 --> Exam Time Table
+Your ip:5001 --> Exam Time Table which can be accessed through Phone and Tablet which are in the same LAN Network area
 
-:: Frontend: HTML, CSS, JavaScript
 
-:: Backend: Python (Flask Framework)
-
-:: Database:  CSV-based Data Management
-
- :: Libraries Used: Pandas, Flask 
-
- :: How It Works
-
-Admin uploads faculty and subject data files.
-
-The system processes the uploaded data and maps subjects to faculties.
-
-The algorithm automatically assigns slots and rooms while avoiding clashes.
-
-Generated timetables can be viewed or downloaded branch-wise and faculty-wise.
-
-:: Objective
-
-To automate the tedious manual process of timetable creation, saving time and effort for academic administrators, while ensuring accuracy and consistency across all departments and faculty schedules.
