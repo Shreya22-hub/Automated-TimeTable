@@ -22,7 +22,7 @@ You can run both modules together for smooth and automated scheduling.
 |------------|-------------|
 | Backend | Python (Flask) |
 | Frontend | HTML, CSS, Bootstrap |
-| Database | SQLite / CSV files (configurable) |
+| Database | Using Excel as DataBase|
 | Deployment | Localhost (can be deployed on Heroku, Render, etc.) |
 
 ---
