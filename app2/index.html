@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Timetable Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '📅';
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .file-section-title::before { content: '📁'; }
+        .allocation-section-title::before { content: '🎯'; }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="date"]:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .date-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            cursor: pointer;
+        }
+        
+        .allocation-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .year-allocation {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .year-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .slot-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 30px auto 0;
+            min-width: 250px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .date-inputs,
+            .slot-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Exam Timetable Generator</h1>
+            <p>Generate comprehensive exam schedules with room and faculty allocation</p>
+            <div style="margin-top: 15px;">
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                    👨‍💼 Logged in as Admin
+                </span>
+                <a href="/logout" style="display: inline-block; margin-left: 10px; padding: 8px 15px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 20px; font-size: 0.9em; border: 1px solid white;">
+                    🚪 Logout
+                </a>
+            </div>
+            {% if has_existing %}
+            <div style="margin-top: 20px;">
+                <a href="/view" style="display: inline-block; padding: 12px 25px; background: white; color: #667eea; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
+                    👁️ View Existing Timetable
+                </a>
+                <a href="/download" style="display: inline-block; padding: 12px 25px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; margin-left: 10px; border: 2px solid white; transition: all 0.3s ease;">
+                    📥 Download Existing
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" enctype="multipart/form-data">
+                <!-- Date Selection and Settings Section -->
+                <div class="section">
+                    <h2 class="section-title">Exam Period & Settings</h2>
+                    <div class="date-inputs">
+                        <div class="form-group">
+                            <label for="start_date">Start Date</label>
+                            <input type="date" id="start_date" name="start_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_date">End Date</label>
+                            <input type="date" id="end_date" name="end_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="max_credits_per_day">Maximum Credits Per Day</label>
+                            <input type="number" id="max_credits_per_day" name="max_credits_per_day" 
+                                   value="5" min="3" max="10" required>
+                            <p class="help-text">Default is 5. Range: 3-10 credits per day per branch</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Branch Slot Allocation Section -->
+                <div class="section">
+                    <h2 class="section-title allocation-section-title">Branch Slot Allocation</h2>
+                    <p class="help-text" style="margin-bottom: 20px;">
+                        Enter branch codes separated by commas (e.g., CSE, DSAI, ECE). Leave empty if no branches for that slot.
+                    </p>
+                    
+                    <div class="allocation-grid">
+                        <!-- 1st Year -->
+                        <div class="year-allocation">
+                            <div class="year-title">1st Year</div>
+                            <div class="slot-inputs">
+                                <div class="form-group">
+                                    <label for="allocation_1St_Year_Morning">Morning Slot</label>
+                                    <input type="text" id="allocation_1St_Year_Morning" 
+                                           name="allocation_1St_Year_Morning" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                                <div class="form-group">
+                                    <label for="allocation_1St_Year_Evening">Evening Slot</label>
+                                    <input type="text" id="allocation_1St_Year_Evening" 
+                                           name="allocation_1St_Year_Evening" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 2nd Year -->
+                        <div class="year-allocation">
+                            <div class="year-title">2nd Year</div>
+                            <div class="slot-inputs">
+                                <div class="form-group">
+                                    <label for="allocation_2Nd_Year_Morning">Morning Slot</label>
+                                    <input type="text" id="allocation_2Nd_Year_Morning" 
+                                           name="allocation_2Nd_Year_Morning" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                                <div class="form-group">
+                                    <label for="allocation_2Nd_Year_Evening">Evening Slot</label>
+                                    <input type="text" id="allocation_2Nd_Year_Evening" 
+                                           name="allocation_2Nd_Year_Evening" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 3rd Year -->
+                        <div class="year-allocation">
+                            <div class="year-title">3rd Year</div>
+                            <div class="slot-inputs">
+                                <div class="form-group">
+                                    <label for="allocation_3Rd_Year_Morning">Morning Slot</label>
+                                    <input type="text" id="allocation_3Rd_Year_Morning" 
+                                           name="allocation_3Rd_Year_Morning" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                                <div class="form-group">
+                                    <label for="allocation_3Rd_Year_Evening">Evening Slot</label>
+                                    <input type="text" id="allocation_3Rd_Year_Evening" 
+                                           name="allocation_3Rd_Year_Evening" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 4th Year -->
+                        <div class="year-allocation">
+                            <div class="year-title">4th Year</div>
+                            <div class="slot-inputs">
+                                <div class="form-group">
+                                    <label for="allocation_4Th_Year_Morning">Morning Slot</label>
+                                    <input type="text" id="allocation_4Th_Year_Morning" 
+                                           name="allocation_4Th_Year_Morning" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                                <div class="form-group">
+                                    <label for="allocation_4Th_Year_Evening">Evening Slot</label>
+                                    <input type="text" id="allocation_4Th_Year_Evening" 
+                                           name="allocation_4Th_Year_Evening" 
+                                           placeholder="CSE, DSAI, ECE">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- File Upload Section -->
+                <div class="section">
+                    <h2 class="section-title file-section-title">Upload Required Files</h2>
+                    <div class="file-grid">
+                        <div class="form-group">
+                            <label for="branch_strength">Branch Strength (BranchStrength.xlsx)</label>
+                            <input type="file" id="branch_strength" name="branch_strength" accept=".xlsx" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="courses_per_year">Courses Per Year (CoursesPerYear.xlsx)</label>
+                            <input type="file" id="courses_per_year" name="courses_per_year" accept=".xlsx" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="common_course">Common Course (CommonCourse.xlsx)</label>
+                            <input type="file" id="common_course" name="common_course" accept=".xlsx" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="settings">Settings (Settings.xlsx)</label>
+                            <input type="file" id="settings" name="settings" accept=".xlsx" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="faculty">Faculty List (FACULTY.csv)</label>
+                            <input type="file" id="faculty" name="faculty" accept=".csv" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="rooms">Rooms (rooms.xlsx)</label>
+                            <input type="file" id="rooms" name="rooms" accept=".xlsx" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="courselist">Course List (courselist.xlsx)</label>
+                            <input type="file" id="courselist" name="courselist" accept=".xlsx" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="students">Students (students.xlsx)</label>
+                            <input type="file" id="students" name="students" accept=".xlsx" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">🚀 Generate Timetable</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

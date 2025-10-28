@@ -535,6 +535,7 @@ function handleMultipleFiles(files) {
 // Duration Settings Modal
 const durationModal = document.getElementById('durationModal');
 const openDurationBtn = document.getElementById('openDurationSettings');
+const closeModalBtn = document.getElementById('closeDurationModal');
 const saveDurationsBtn = document.getElementById('saveDurations');
 const resetDurationsBtn = document.getElementById('resetDurations');
 
@@ -542,7 +543,11 @@ const resetDurationsBtn = document.getElementById('resetDurations');
 const defaultDurations = {
     lecture: 3,
     lab: 4,
-    tutorial: 2
+    tutorial: 2,
+    morningBreakStart: "10:30",
+    morningBreakEnd: "11:00",
+    lunchBreakStart: "12:30",
+    lunchBreakEnd: "13:30"
 };
 
 // Open modal
@@ -550,7 +555,12 @@ openDurationBtn.addEventListener('click', () => {
     durationModal.classList.remove('hidden');
 });
 
-// Close modal when clicking outside
+// Close modal when clicking X button
+closeModalBtn.addEventListener('click', () => {
+    durationModal.classList.add('hidden');
+});
+
+// Close modal when clicking outside content
 durationModal.addEventListener('click', (e) => {
     if (e.target === durationModal) {
         durationModal.classList.add('hidden');
@@ -564,6 +574,12 @@ function updateDurationDisplay(type, value) {
     display.textContent = `${hours} hour${hours !== 1 ? 's' : ''} (${value} slots)`;
 }
 
+// Update break displays
+function updateBreakDisplay(type, startValue, endValue) {
+    const display = document.getElementById(`${type}BreakDisplay`);
+    display.textContent = `${startValue} - ${endValue}`;
+}
+
 // Add input listeners for sliders
 ['lecture', 'lab', 'tutorial'].forEach(type => {
     const slider = document.getElementById(`${type}Duration`);
@@ -572,24 +588,46 @@ function updateDurationDisplay(type, value) {
     });
 });
 
-// Reset durations
-resetDurationsBtn.addEventListener('click', () => {
-    Object.entries(defaultDurations).forEach(([type, value]) => {
-        const slider = document.getElementById(`${type}Duration`);
-        slider.value = value;
-        updateDurationDisplay(type, value);
+// Add input listeners for breaks
+[['morning', 'Morning'], ['lunch', 'Lunch']].forEach(([idPrefix, name]) => {
+    const startInput = document.getElementById(`${idPrefix}BreakStart`);
+    const endInput = document.getElementById(`${idPrefix}BreakEnd`);
+
+    // Update display on input
+    [startInput, endInput].forEach(input => {
+        input.addEventListener('input', () => {
+            updateBreakDisplay(idPrefix.toLowerCase(), startInput.value, endInput.value);
+        });
     });
 });
 
-// Save durations
+// Reset durations and breaks
+resetDurationsBtn.addEventListener('click', () => {
+    Object.entries(defaultDurations).forEach(([key, value]) => {
+        if (['lecture', 'lab', 'tutorial'].includes(key)) {
+            const slider = document.getElementById(`${key}Duration`);
+            slider.value = value;
+            updateDurationDisplay(key, value);
+        } else if (key.includes('Break')) {
+            const [type, time] = key.includes('Start') ? ['Start', 'Start'] : ['End', 'End'];
+            document.getElementById(`${key.replace(/([A-Z])/g, '')}`).value = value;
+            updateBreakDisplay(key.replace(/([A-Z])/g, '').toLowerCase(), 
+                               document.getElementById('morningBreakStart').value,
+                               document.getElementById('morningBreakEnd').value);
+        }
+    });
+});
+
+// Save durations and breaks
 saveDurationsBtn.addEventListener('click', () => {
     const durations = {
         lecture_duration: parseInt(document.getElementById('lectureDuration').value),
         lab_duration: parseInt(document.getElementById('labDuration').value),
         tutorial_duration: parseInt(document.getElementById('tutorialDuration').value),
-        self_study_duration: 2, // Keep default
-        break_duration: 1, // Keep default
-        hour_slots: 2 // Keep constant
+        morning_break_start: document.getElementById('morningBreakStart').value,
+        morning_break_end: document.getElementById('morningBreakEnd').value,
+        lunch_break_start: document.getElementById('lunchBreakStart').value,
+        lunch_break_end: document.getElementById('lunchBreakEnd').value
     };
 
     fetch('/save-config', {
@@ -610,3 +648,7 @@ saveDurationsBtn.addEventListener('click', () => {
     const slider = document.getElementById(`${type}Duration`);
     updateDurationDisplay(type, slider.value);
 });
+
+// Initialize break displays
+updateBreakDisplay('morning', defaultDurations.morningBreakStart, defaultDurations.morningBreakEnd);
+updateBreakDisplay('lunch', defaultDurations.lunchBreakStart, defaultDurations.lunchBreakEnd);

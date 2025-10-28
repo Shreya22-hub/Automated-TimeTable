@@ -179,16 +179,26 @@ def find_adjacent_lab_room(room_id, rooms):
 def find_suitable_room(course_type, department, semester, day, start_slot, duration,
                        rooms, batch_info, timetable, course_code="", used_rooms=None):
     """
-    Find suitable room(s) considering batch sizes and avoiding room conflicts.
-    Returns room ID(s) as string, or "DEFAULT_ROOM" if no room is available.
+    Assign a suitable room considering batch sizes, type, and availability.
+    Returns:
+        - Room ID string
+        - "CONTACT FACULTY" if course_code > 20 characters
+        - "DEFAULT_ROOM" if no suitable room found
     """
+    # -----------------------------
+    # 1. Manual assignment for long course codes
+    if len(course_code) > 20:
+        return "CONTACT FACULTY"
+
     if not rooms:
         return "DEFAULT_ROOM"
 
+    # Track used rooms
     used_room_ids = set() if used_rooms is None else used_rooms
 
-    # Determine required capacity
-    required_capacity = 50  # default fallback
+    # -----------------------------
+    # 2. Determine required capacity
+    required_capacity = 50  # default
     is_basket = is_basket_course(course_code)
 
     if batch_info:
@@ -197,31 +207,36 @@ def find_suitable_room(course_type, department, semester, day, start_slot, durat
             if elective_info:
                 required_capacity = int(elective_info.get('section_size', 120))
         else:
-            dept_info = batch_info.get((department, semester))
+            dept_info = batch_info.get((department, int(semester)))
             if dept_info:
                 required_capacity = int(dept_info.get('section_size', 120))
 
-    # Initialize room schedules if missing
+    # -----------------------------
+    # 3. Ensure room schedules exist for the day
     for room in rooms.values():
         if day not in room['schedule']:
             room['schedule'][day] = set()
 
-    # Helper to check if a room is free
+    # -----------------------------
+    # 4. Helper functions
     def is_room_free(rid):
         return all((start_slot + i) not in rooms[rid]['schedule'][day] for i in range(duration))
 
-    # Helper to mark room as used
     def mark_room_used(rid):
         for i in range(duration):
             rooms[rid]['schedule'][day].add(start_slot + i)
         used_room_ids.add(rid)
 
-    # LABS: Handle large labs requiring adjacent rooms
-    if course_type in ['COMPUTER_LAB', 'HARDWARE_LAB']:
-        dept_info = batch_info.get((department, semester))
-        if dept_info and int(dept_info.get('total', 0)) > 35:
+    # -----------------------------
+    # 5. LABS: handle adjacency for large labs
+    if course_type.upper() in ['COMPUTER_LAB', 'HARDWARE_LAB']:
+        dept_info = batch_info.get((department, int(semester)))
+        total_students = int(dept_info.get('total', 0)) if dept_info else 0
+
+        if total_students > 35:
+            # Need 2 adjacent rooms
             for rid, room in rooms.items():
-                if rid in used_room_ids or room['type'].upper() != course_type:
+                if rid in used_room_ids or room['type'].upper() != course_type.upper():
                     continue
                 if is_room_free(rid):
                     adj_room = find_adjacent_lab_room(rid, rooms)
@@ -229,28 +244,33 @@ def find_suitable_room(course_type, department, semester, day, start_slot, durat
                         mark_room_used(rid)
                         mark_room_used(adj_room)
                         return f"{rid},{adj_room}"
-        # If no adjacent lab needed or found, try regular allocation
+
+        # If no adjacency needed/found, assign single lab room
         for rid, room in rooms.items():
-            if room['type'].upper() == course_type and is_room_free(rid) and int(room.get('capacity', 0)) >= required_capacity:
+            if room['type'].upper() == course_type.upper() and is_room_free(rid) and int(room.get('capacity', 0)) >= required_capacity:
                 mark_room_used(rid)
                 return rid
 
-    # LECTURES / TUT / SS / BASKET COURSES
-    candidate_rooms = [rid for rid, r in rooms.items() 
-                       if r['type'].upper() in ['LECTURE_ROOM', 'SEATER'] 
-                       and is_room_free(rid) 
-                       and int(r.get('capacity', 0)) >= required_capacity 
-                       and rid not in used_room_ids]
+    # -----------------------------
+    # 6. LECTURES / TUTORIALS / SEATER ROOMS
+    candidate_rooms = [
+        rid for rid, r in rooms.items()
+        if r['type'].upper() in ['LECTURE_ROOM', 'SEATER']
+        and is_room_free(rid)
+        and int(r.get('capacity', 0)) >= required_capacity
+        and rid not in used_room_ids
+    ]
 
     if candidate_rooms:
-        # Pick room with least usage in timetable
-        room_usage = {rid: sum(len(r['schedule'][day]) for day in r['schedule']) for rid, r in rooms.items()}
+        # Prefer room with least usage
+        room_usage = {rid: sum(len(r['schedule'][d]) for d in r['schedule']) for rid, r in rooms.items()}
         candidate_rooms.sort(key=lambda x: room_usage[x])
         chosen_room = candidate_rooms[0]
         mark_room_used(chosen_room)
         return chosen_room
 
-    # BASKET COURSES: try existing rooms used by same basket group
+    # -----------------------------
+    # 7. BASKET COURSES: reuse rooms from same basket group
     if is_basket:
         basket_group = get_basket_group(course_code)
         for day_slots in timetable.values():
@@ -261,7 +281,8 @@ def find_suitable_room(course_type, department, semester, day, start_slot, durat
                         mark_room_used(rid)
                         return rid
 
-    # If no suitable room found
+    # -----------------------------
+    # 8. Fallback
     return "DEFAULT_ROOM"
 
 def try_room_allocation(rooms, course_type, required_capacity, day, start_slot, duration, used_room_ids):

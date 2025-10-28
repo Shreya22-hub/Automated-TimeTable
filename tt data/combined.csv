@@ -14,25 +14,10 @@ CSE,3,CS263,DAA,3.0,1.0,0.0,0.0,4.0,Dr. Malay / Dr. Pramod Yelmand,Yes
 CSE,3,CS264,Computer Networks,3.0,1.0,2.0,0.0,5.0,Dr. Prabhu Prasad,Yes
 CSE,3,HS205,Ethics,3.0,0.0,0.0,0.0,3.0,"Dr. Ganesh P , IIT Hyd",Yes
 CSE,5,CS307,Machine Learning,3.0,0.0,2.0,0.0,4.0,Dr. Girish GN/Dr. Krishnendu Ghosh,Yes
-CSE,5,B1-CS471,Deep Learning for Computer Vision,3.0,1.0,0.0,0.0,4.0,Chinmayanand,Yes
-CSE,5,B1-abc001,Large Languange Models,3.0,1.0,0.0,0.0,4.0,Dr. Sunil S,
-CSE,5,B1-abc002,Natural Language Processing,3.0,1.0,0.0,0.0,4.0,Dr. Krishnendu,
-CSE,5,B1-abc003,Deep Speech Processing,3.0,0.0,0.0,4.0,4.0,Prof. SRM Prasanna,
-CSE,5,B1-abc004,CMOS RF Circuit Design,,,,,,Dr. Pankaj Kumar and Dr. Rajesh Kumar,
-CSE,5,B2-abc005,Blockchain Technology,3.0,1.0,0.0,0.0,4.0,Dr. Rajendra H,Yes
-CSE,5,B2-abc006,Introduction to 5G Network,3.0,1.0,0.0,0.0,4.0,Dr. Jagadeesha R Bhat,
-CSE,5,B2-abc007,Model Checking,3.0,0.0,0.0,4.0,4.0,Dr. Pavan,
-CSE,5,B2-abc008,Quantum Communication,3.0,0.0,0.0,0.0,3.0,Dr. Aswath B,
-CSE,5,B2-abc009,Quantum HPC and AI,1.0,0.0,0.0,0.0,1.0,Dr. Manish M (Dr. Aswath),
-CSE,5,B2-abc010,Design Thinking and Innovation,3.0,1.0,0.0,0.0,4.0,Dr. Sandesh P,
+CSE,5,B1-CS471 / B1-abc001 / B1-abc002 to abc004,Deep Learning for Computer Vision  / Large Languange Models/ Natural Language Processing / Deep Speech Processing / CMOS RF Circuit Design,3.0,1.0,0.0,0.0,4.0,Chinmayanand / Dr. Sunil S / Dr. Krishnendu / Prof. SRM Prasanna / Dr. Pankaj Kumar and Dr. Rajesh Kumar,Yes
+CSE,5,B2-abc005 to -abc010,Blockchain Technology / Introduction to 5G Network / Model Checking / Quantum Communication / Quantum HPC and AI / Design Thinking and Innovation,3.0,1.0,0.0,0.0,4.0,Dr. Rajendra H / Dr. Jagadeesha R Bhat / Dr. Pavan / Dr. Aswath B / Dr. Manish M (Dr. Aswath),Yes
 CSE,5,B3-abc011,Automotive Embedded and Multimedia Systems,3.0,0.0,0.0,4.0,4.0,Mr. Jagadeesh K (Dr Sibasankar Padhy),Yes
-CSE,5,B3-abc012,Microwave Engineering,3.0,1.0,0.0,0.0,4.0,Dr. Somen,
-CSE,5,B3-CS462,Computer Graphics,3.0,1.0,0.0,0.0,4.0,Dr. Vivekraj V K,
-CSE,5,B3-CS469,Virtualization and Cloud Computing,,,,,,Dr Malay,
 CSE,5,B4-abc013,Data Analytics and Visualization,3.0,1.0,0.0,0.0,4.0,Dr. Sunil CK,Yes
-CSE,5,B4-abc014,Statistics for Health Technology,3.0,1.0,0.0,0.0,4.0,Dr. Ramesh Athe,
-CSE,5,B4-abc015,Medical Image Analysis,3.0,0.0,0.0,4.0,4.0,Dr. Girish GN,
-CSE,5,B4-CS472,Bioinformatics,,,,,,Dr. Sunil Kumar PV,
 CSE,5,CS399,Mini Project 1,0.0,0.0,0.0,8.0,2.0,Dr. Pramod Yelmewad and Animesh Roy,Yes
 CSE,7,CS499,Major-Project,0.0,0.0,0.0,32.0,8.0,Dr. Pramod Yelmewad and Dr. Animesh Roy,Yes
 DSAI,1,MA162,Probability ,3.0,1.0,0.0,0.0,2.0,Dr.Chinmmayananda,Yes
@@ -50,16 +35,8 @@ DSAI,5,DS307,Innovation & Entrepreneurship,3.0,1.0,0.0,0.0,4.0,Mr. Ram Subramani
 DSAI,5,DS308,Data Security & Privacy,3.0,1.0,0.0,0.0,4.0,Dr. Abdul Wahid & Dr. Rajendra Hegadi,Yes
 DSAI,5,DS399,Mini Project-I,0.0,0.0,0.0,8.0,2.0,Coordinator: Dr. Shirshendu,Yes
 DSAI,5,HS101,Environmental Studies,,,,,,-,Yes
-DSAI,5,B1-CS464,Deep Learning for Computer Vision,3.0,1.0,0.0,0.0,4.0,Dr. Chinmayanand,Yes
-DSAI,5,B1-NEW,Large Language Models,3.0,0.0,0.0,4.0,4.0,Dr. Sunil S,
-DSAI,5,B1-CS458,Natural Language Processing,3.0,1.0,0.0,0.0,4.0,Dr. Krishnendu,
-DSAI,5,B1-NEW,Deep Speech Processing,3.0,1.0,0.0,0.0,4.0,Prof. SRM Prasanna,
-DSAI,5,B2-CS455,Blockchain Technology,3.0,0.0,0.0,4.0,4.0,Dr. Rajendra H,Yes
-DSAI,5,B2-EC361,Introduction to 5G Network,3.0,1.0,0.0,0.0,4.0,Dr. Jagadeesha R Bhat,
-DSAI,5,B2-NEW,Model Checking,3.0,0.0,0.0,4.0,4.0,Dr. Pavan,
-DSAI,5,B2-NEW,Quantum Communication,3.0,0.0,0.0,0.0,3.0,Dr. Aswath B,
-DSAI,5,B2-NEW,Quantum HPC and AI,1.0,0.0,0.0,0.0,1.0,Dr. Manish M (Dr. Aswath),
-DSAI,5,B2-NEW,Design Thinking and Innovation,3.0,1.0,0.0,0.0,4.0,Dr. Sandesh P,
+DSAI,5,B1-CS464 / B1-NEW / B1-CS458,Deep Learning for Computer Vision / Large Language Models / Natural Language Processing,3.0,1.0,0.0,0.0,4.0,Dr. Chinmayanand / Dr. Sunil S / Dr. Krishnendu,Yes
+DSAI,5,B2-EC361 / B2-NEW / B2-NEW/ B2-NEW/ B2-NEW / B2-CS455,Introduction to 5G Network / Model Checking / Quantum Communication / Quantum HPC and AI / Block Chain Tech,3.0,1.0,0.0,0.0,4.0,Dr. Jagadeesha R Bhat / Dr. Pavan / Dr. Aswath B / Dr. Manish M (Dr. Aswath) / Dr. Rajendra H,
 ECE,1,MA162,Probability ,3.0,1.0,0.0,0.0,2.0,Dr.Chinmmayananda,Yes
 ECE,1,EC161,Digital Design,3.0,0.0,2.0,0.0,3.0,Dr.Prakash Pawar,Yes
 ECE,1,CS161,Problem solving with Programming,2.0,1.0,0.0,2.0,3.0,Dr.Animesh Roy,Yes
@@ -72,24 +49,18 @@ ECE,3,EC204,Analog and Digital Communication,3.0,1.0,2.0,0.0,5.0,Dr. Somen Bhatt
 ECE,3,HS204,Economics,3.0,1.0,0.0,0.0,4.0,Dr. Anushree Kini,Yes
 ECE,3,HS205,Ethics,3.0,0.0,0.0,0.0,3.0,Dr. Jolly Thomas IIT Dharwad,Yes
 ECE,5,CS307,Wireless Communication,3.0,0.0,0.0,4.0,4.0,Dr. Rajib Sharma/ Dr. Rao (Lab),Yes
-ECE,5,B1-CS464,Deep Learning for Computer Vision ,3.0,1.0,0.0,0.0,4.0,Dr. Chinmayanand,Yes
-ECE,5,B1-NEW,Large Languange Models,3.0,0.0,0.0,4.0,4.0,Dr. Sunil S,
-ECE,5,B1-CS458,Natural Language Processing,3.0,1.0,0.0,0.0,4.0,Dr. Krishnendu,
+ECE,5,B1-CS464 / B1-NEW / B1-CS458 / B1-NEW,Deep Learning for Computer Vision / Large Language Models / Natural Language Processing / Deep Speech Processing,3.0,1.0,0.0,0.0,4.0,Dr. Chinmayanand / Dr. Sunil S / Dr. Krishnendu / Dr. Rajesh Kumar,Yes
 ECE,5,B1,CMOS RF Circuit Design,,,,,,Dr. Rajesh Kumar,
-ECE,5,B1-NEW,Deep Speech Processing,3.0,1.0,0.0,0.0,4.0,Prof. SRM Prasanna,
-ECE,5,B2-CS455,Blockchain Technology,3.0,0.0,0.0,4.0,4.0,Dr. Rajendra H,
-ECE,5,B2-EC361,Introduction to 5G Network,3.0,1.0,0.0,0.0,4.0,Dr. Jagadeesha R Bhat,
+ECE,5,B2-CS455 / B2-EC361 / B2-NEW,Blockchain Technology / Introduction to 5G Network / Model Checking / Quantum Communication / Quantum HPC and AI / Design Thinking and Innovation,3.0,0.0,0.0,4.0,4.0,Dr. Rajendra H / Dr. Jagadeesha R Bhat / Dr. Pavan / Dr. Aswath B / Dr. Manish M (Dr. Aswath),
 ECE,5,B2,Model Checking,3.0,0.0,0.0,4.0,4.0,Dr. Pavan,
 ECE,5,B2,Quantum Communication,3.0,0.0,0.0,0.0,3.0,Dr. Aswath B,
 ECE,5,B2,Quantum HPC and AI,1.0,0.0,0.0,0.0,1.0,Dr. Manish M (Dr. Aswath),
-ECE,5,B2-NEW,Design Thinking and Innovation,3.0,1.0,0.0,0.0,4.0,Dr. Sandesh P,
 ECE,5,B3,Computer Graphics,3.0,1.0,0.0,0.0,4.0,Dr. Vivekraj V K,
 ECE,5,B3-CS307,Machine Learning,3.0,1.0,0.0,0.0,4.0,Dr. Deepak K T,
 ECE,5,B3,Virtualization & Cloud Computing,,,,,,Dr. Malay,
 ECE,5,B4,Data Analytics & Visualization,3.0,1.0,0.0,0.0,4.0,Dr. Sunil C K ,
-ECE,5, B4-DS351,Statistics for Health Technology,3.0,1.0,0.0,0.0,4.0,Dr. Ramesh Athe,
+ECE,5, B4-DS351 / B4-CS472,Statistics for Health Technology / Bioinformatics,3.0,1.0,0.0,0.0,4.0,Dr. Ramesh Athe / Dr. Sunil Kumar PV,
 ECE,5,B4,Medical Image Analysis,2.0,0.0,2.0,4.0,4.0,Dr. Girish G N,
-ECE,5,B4-CS472,Bioinformatics,,,,,,Dr. Sunil Kumar PV,
-ECE,5,B3,Automotive Embedded and Multimedia Systems/Microwave Engineering/Computer Graphics/Machine learning/Virtualization and Cloud Computing,3.0,1.0,0.0,0.0,4.0,Mr. Jagadeesh K (Dr Sibasankar Padhy)/Dr. Somen/Dr. Vivekraj V K/Dr. Deepak KT/Dr Malay,Yes
-ECE,5,Mini Project 1,Mini Project 1,0.0,0.0,0.0,8.0,2.0,Dr. Pankaj Kumar,Yes
-ECE,7,EC499,Major Project,0.0,0.0,0.0,32.0,8.0,Dr. Rajesh Kumar,Yes
+ECE,5,B3,Automotive Embedded and Multimedia Systems/Microwave Engineering/Computer Graphics/Machine learning/Virtualization and Cloud Computing,3.0,1.0,0.0,0.0,4.0,Mr. Jagadeesh K (Dr Sibasankar Padhy)/Dr. Somen/Dr. Vivekraj V K/Dr. Deepak KT/Dr Malay,
+ECE,5,Mini Project 1,Mini Project 1,0.0,0.0,0.0,8.0,2.0,Dr. Pankaj Kumar,
+ECE,7,EC499,Major Project,0.0,0.0,0.0,32.0,8.0,Dr. Rajesh Kumar,
