@@ -1,2 +1,0 @@
-Name,Time
-Alice,10:00

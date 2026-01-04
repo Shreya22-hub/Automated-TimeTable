@@ -1,3 +1,0 @@
-Faculty ID,Name,Preferred Days,Preferred Times
-F101,Dr. Krishnendu Ghosh,Monday;Wednesday,10:00-12:00
-F102,Dr. Abdul Wahid,Tuesday,14:00-16:00
