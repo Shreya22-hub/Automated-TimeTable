@@ -1,5 +1,0 @@
-This function generates timetables for the department.
- It first checks if all required input files exist (combined.csv, FACULTY.csv, elective_registrations.csv, rooms.csv, updated_batches.csv). 
-If any file is missing, it shows a flash message and redirects to the index. 
-If all files exist, it calls the timetable generator, creates a ZIP file containing all generated timetables, and sends it as a downloadable file. 
-Errors during generation are caught, a flash message is displayed, and the user is redirected.

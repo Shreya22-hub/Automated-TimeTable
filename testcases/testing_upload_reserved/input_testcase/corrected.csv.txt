@@ -1,2 +1,0 @@
-Day,Start Time,End Time,Semester
-Monday,10:00,11:00,2
