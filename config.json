@@ -1,0 +1,19 @@
+{
+    "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+    ],
+    "LECTURE_MIN": 120,
+    "LAB_MIN": 120,
+    "TUTORIAL_MIN": 60,
+    "SELF_STUDY_MIN": 60,
+    "MORNING_BREAK_START": "10:30",
+    "MORNING_BREAK_END": "10:45",
+    "LUNCH_BREAK_START": "13:00",
+    "LUNCH_BREAK_END": "14:00",
+    "LECTURE_TUTORIAL_BREAK_START": "15:30",
+    "LECTURE_TUTORIAL_BREAK_END": "15:40"
+}

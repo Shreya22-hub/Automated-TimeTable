@@ -1,0 +1,43 @@
+Department,Semester,Course Code,Course Name,L,T,P,S,C,Faculty,Schedule,total_students,240
+CSE,1,CS162,Probability ,3,1,0,0,2,Dr. Chinmayanada,Yes,70,Yes
+CSE,1,CS163,Digital Design,3,0,2,0,2,Dr. Prakash Pawar,Yes,70,Yes
+CSE,1,CS164,Problem Solving With Programming,3,0,2,0,4,Dr. Sunil PV & Dr. Sunil CK,Yes,70,No
+CSE,1,HS153,English Language and Communication,2,1,0,0,3,Dr. Rajesh N S,Yes,70,No
+CSE,3,MA202,Design analysis and Algorithms,3,0,2,0,4,Dr. Malay & Dr. Pramod Yelmavd,Yes,70,No
+CSE,3,CS206,Software design tools and Techniques,3,0,2,0,4,Dr. Sunil PV & Dr. VivekRaj VK,Yes,70,No
+CSE,3,CS204,Operating Systems,3,0,0,0,4,Dr. Suvadip Hazra,Yes,70,No
+CSE,3,CS301,Computer Networks,3,1,0,0,4,Dr. Prabhu Prasad B,Yes,70,No
+CSE,3,MA262,Multivarte Calculus,3,1,0,0,2,Dr. Somen Bhattacharjee,Yes,70,Yes
+CSE,3,HS205,Ethics,3,0,0,0,3,Dr. Ganesh,Yes,70,No
+CSE,5,CS309,Statics For Computer Science,3,0,2,0,4,Dr. Sunil CK & Dr. Pavan,Yes,70,No
+CSE,5,CS303,Computer Networks,3,1,0,0,4,Dr. Animesh Roy,Yes,70,No
+CSE,5,CS304,Artifical Intelligence,3,1,0,0,4,Dr. Krishnendu Ghosh,Yes,70,No
+CSE,5,HS101,Environmental Studies,3,0,0,0,4,NA,Yes,70,Yes
+CSE,7,CS499,MajorProject,0,1,0,0,8,Dr. Animesh Roy,Yes,70,No
+DSAI,1,CS315,Statics ,3,1,0,0,2,Dr. Ramesh Athe,Yes,22,Yes
+DSAI,1,CS318,Introduction to DS and AI,3,1,0,0,2,Dr. Girish Revadigar,Yes,19,Yes
+DSAI,1,CS319,Problem Solving With Programming,3,0,2,0,0,Dr. Majunath,Yes,26,No
+DSAI,1,CS320,Economics / IT,3,0,0,0,0,NA,Yes,21,No
+DSAI,3,MA202,Differential Equations,3,1,0,0,4,Dr. Anand Barangi,Yes,70,No
+DSAI,3,HS206,Statistical Programming,3,1,0,0,3,Dr. Ramesh Athe,Yes,70,No
+DSAI,3,CS204,Data Handling and Visualization,3,0,0,0,4,Dr. Siddharth,Yes,70,No
+DSAI,3,DS204,Artifical Intelligence,3,0,2,0,4,Dr. Animesh Chaturvedi,Yes,70,No
+DSAI,3,CS310,Machine Learning,3,0,2,0,5,Dr. Utkarsh Khaire,Yes,70,No
+DSAI,5,DS309,Computer Communication Networks,3,1,0,0,4,Dr. Shirshendu Layek,Yes,70,No
+DSAI,5,DS307,Algorithms and Artificial Intelligence,3,1,0,0,4,Dr. Animesh Chaturvedi,Yes,70,No
+DSAI,5,DS308,Machine Learning,3,1,0,0,4,Dr. Siddharth,Yes,70,No
+DSAI,7,DS499,MajorProject,0,1,0,0,8,Dr. Rajesh N S,Yes,70,No
+ECE,3,MA208,Differential Equations,3,1,0,0,2,Dr. Anand Barangi,Yes,70,No
+ECE,3,EC205,HSS/IE,3,0,0,0,3,NA,Yes,70,No
+ECE,3,EC310,Random Process,3,1,0,0,2,Dr. Chinmayanada A,Yes,70,No
+ECE,3,EC204,Signals & System,2,1,0,0,3,Dr. Somen Bhattacharjee,Yes,70,No
+ECE,3,HS205,Ethics,3,0,0,0,3,Dr. Jolly Thomas,Yes,70,No
+ECE,5,CS307,Digital Signal Processing,3,0,2,0,4,Dr. Sibasankar Padhy,Yes,70,No
+ECE,5,CS464,Introduction to VLSI Design,3,1,0,0,4,Dr. Jagdish DN,Yes,30,No
+ECE,5,HS239,Introduction to Algorithms,3,1,0,0,4,Dr. Jagdish R.B,Yes,25,No
+ECE,5,CS458,Happieness and Wellbeing,3,0,0,0,4,Dr. Chandrika Kamath,Yes,27,No
+ECE,7,DS499,Major Project,0,1,0,0,8,Dr. Abdul Wahid,Yes,70,No
+ECE,1,EC201,Problem Solving With Programming,3,0,2,0,2,Dr. Chinmayanad,Yes,70,No
+ECE,1,HS201,Economics / IT,3,0,0,0,3,Dr. Anushree Kini,Yes,70,No
+ECE,1,CS315,Statics ,3,1,0,0,2,Dr. Ramesh Athe,Yes,22,Yes
+ECE,1,CS318,Introduction to DS and AI,3,1,0,0,2,Dr. Girish Revadigar,Yes,19,Yes
