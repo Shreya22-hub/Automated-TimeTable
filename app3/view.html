@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View & Edit Timetable</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --surface: #ffffff;
+            --bg: #f3f4f6;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 2rem;
+            margin: 0;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header h1 { margin: 0; font-size: 2rem; }
+        .nav-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+        
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card {
+            background: var(--surface); padding: 1.5rem; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border);
+        }
+        .card h3 { margin-top: 0; font-size: 1.1rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+        
+        .status-badge {
+            display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px;
+            font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem;
+        }
+        .status-success { background: #d1fae5; color: #065f46; }
+        .status-partial { background: #fef3c7; color: #92400e; }
+
+        .table-container { background: var(--surface); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: #f9fafb; font-weight: 600; color: #4b5563; position: sticky; top: 0; }
+        
+        td input {
+            width: 100%; padding: 6px 10px; border: 1px solid transparent; border-radius: 4px;
+            background: transparent; font-size: inherit; font-family: inherit; transition: all 0.2s;
+        }
+        td input:hover { border-color: #d1d5db; background: #f9fafb; }
+        td input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        .toolbar { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Timetable Editor</h1>
+        <a href="/" class="nav-link">← Back to Generator</a>
+    </div>
+
+    {% if error %}
+    <div class="card" style="border-left: 5px solid var(--error);">
+        <h3>Error</h3>
+        <p>{{ error }}</p>
+    </div>
+    {% else %}
+
+    <!-- Dashboard -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>Configuration</h3>
+            <div style="margin-top: 1rem;">
+                <p><strong>Start Date:</strong> {{ config.get('start_date', 'N/A') }}</p>
+                <p><strong>Max Students/Slot:</strong> {{ config.get('max_students_per_slot', 'N/A') }}</p>
+                <p><strong>Courses/Room:</strong> {{ config.get('courses_per_room', 'N/A') }}</p>
+                <p><small style="color: #6b7280;">Generated: {{ config.get('generated_at', '') }}</small></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Verification Report</h3>
+            <div style="margin-top: 1rem;">
+                {% if verification.status == 'Success' %}
+                    <span class="status-badge status-success">✅ Fully Scheduled</span>
+                {% else %}
+                    <span class="status-badge status-partial">⚠️ {{ verification.status }}</span>
+                {% endif %}
+                
+                <div style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;">
+                    <div><div style="color: #6b7280;">Input Courses</div><strong>{{ verification.input_courses }}</strong></div>
+                    <div><div style="color: #6b7280;">Scheduled Courses</div><strong>{{ verification.scheduled_courses }}</strong></div>
+                    <div><div style="color: #6b7280;">Input Students</div><strong>{{ verification.input_students }}</strong></div>
+                    <div><div style="color: #6b7280;">Assigned Students</div><strong>{{ verification.scheduled_students }}</strong></div>
+                </div>
+                {% if verification.message %}
+                <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--error);">{{ verification.message }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Editable Table -->
+    <div class="table-container">
+        <table id="scheduleTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Slot</th>
+                    <th>Room</th>
+                    <th>Faculty</th>
+                    <th>Course</th>
+                    <th>Year</th>
+                    <th>Students</th>
+                    <th>Roll Numbers</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in schedule %}
+                <tr>
+                    <td><input type="date" value="{{ row.Date }}" name="Date"></td>
+                    <td><input type="text" value="{{ row.Slot }}" name="Slot"></td>
+                    <td><input type="text" value="{{ row.Room }}" name="Room"></td>
+                    <td><input type="text" value="{{ row.Faculty }}" name="Faculty"></td>
+                    <!-- REMOVED readonly="readonly" from below fields -->
+                    <td><input type="text" value="{{ row.Course }}" name="Course"></td>
+                    <td><input type="text" value="{{ row.Year }}" name="Year"></td>
+                    <td><input type="number" value="{{ row['Student Count'] }}" name="Student Count"></td>
+                    <td><input type="text" value="{{ row['Roll Numbers'] }}" name="Roll Numbers" style="font-size: 0.8em;"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="toolbar">
+        <button class="btn btn-primary" onclick="saveChanges()">Save Changes to Server</button>
+        <button class="btn btn-secondary" onclick="downloadExcel()">Download Excel</button>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // 1. Auto-calculate Student Count when Roll Numbers are changed
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('scheduleTable');
+        // Loop through rows starting from 1 (skip header)
+        for (let i = 1; i < table.rows.length; i++) {
+            const tr = table.rows[i];
+            const rollInput = tr.querySelector('input[name="Roll Numbers"]');
+            const countInput = tr.querySelector('input[name="Student Count"]');
+            
+            if (rollInput && countInput) {
+                rollInput.addEventListener('input', function() {
+                    const rolls = this.value;
+                    // Count commas to determine number of students
+                    // Handle empty string as 0
+                    const count = rolls.trim() === '' ? 0 : rolls.split(',').length;
+                    countInput.value = count;
+                });
+            }
+        }
+    });
+
+    function saveChanges() {
+        const table = document.getElementById('scheduleTable');
+        const rows = [];
+        for (let i = 1; i < table.rows.length; i++) {
+            const row = table.rows[i];
+            const inputs = row.getElementsByTagName('input');
+            const rowData = {};
+            rowData['Date'] = inputs[0].value;
+            rowData['Slot'] = inputs[1].value;
+            rowData['Room'] = inputs[2].value;
+            rowData['Faculty'] = inputs[3].value;
+            rowData['Course'] = inputs[4].value;
+            rowData['Year'] = inputs[5].value;
+            rowData['Student Count'] = inputs[6].value;
+            rowData['Roll Numbers'] = inputs[7].value;
+            rows.push(rowData);
+        }
+
+        fetch('/save_changes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rows: rows })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) alert('Changes saved successfully!');
+            else alert('Error: ' + data.error);
+        })
+        .catch(error => alert('An error occurred while saving.'));
+    }
+
+    function downloadExcel() {
+        const fileName = "{{ config.get('schedule_file', '') }}";
+        if(fileName) {
+            window.location.href = `/uploads/${fileName}`; 
+        } else {
+            alert("Please go back to Home to download the latest version.");
+        }
+    }
+</script>
+
+</body>
+</html>
