@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Scheduler</title>
+    <title>Exam Scheduler & Seating Planner</title>
     <style>
         :root {
             --primary: #4F46E5; --primary-hover: #4338ca;
@@ -11,199 +11,450 @@
             --text-main: #111827; --text-muted: #6b7280;
             --border: #e5e7eb; --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --success: #10b981;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--background); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; align-items: center; padding: 2rem 1rem; }
-        header { text-align: center; margin-bottom: 2.5rem; }
-        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; }
-        p.subtitle { color: var(--text-muted); font-size: 1.1rem; }
-        main { background: var(--surface); width: 100%; max-width: 800px; padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); }
-        .form-section { margin-bottom: 2rem; }
-        .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-        .field { display: flex; flex-direction: column; }
-        label { font-weight: 500; margin-bottom: 0.5rem; font-size: 0.95rem; }
-        input[type="date"], input[type="number"] { padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: border-color 0.2s; }
-        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .file-upload-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .file-drop-area { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 2rem 1rem; border: 2px dashed var(--border); border-radius: 8px; transition: 0.2s; background: #fafafa; cursor: pointer; text-align: center; }
-        .file-drop-area:hover { border-color: var(--primary); background: #eef2ff; }
-        .file-msg { font-size: 0.9rem; color: var(--text-muted); pointer-events: none; margin-bottom: 0.5rem; }
-        .file-input { position: absolute; left: 0; top: 0; height: 100%; width: 100%; opacity: 0; cursor: pointer; }
-        .file-name { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-top: 0.5rem; word-break: break-all; }
-        .icon-upload { width: 32px; height: 32px; margin-bottom: 0.75rem; fill: var(--text-muted); }
-        .actions { margin-top: 2rem; text-align: center; }
-        .btn-primary { background-color: var(--primary); color: white; border: none; padding: 1rem 2.5rem; font-size: 1.1rem; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); display: inline-flex; align-items: center; gap: 0.5rem; }
-        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-        .btn-primary:disabled { background-color: var(--text-muted); cursor: not-allowed; transform: none; }
-        #status-area { margin-top: 2rem; padding: 1rem; border-radius: 8px; display: none; text-align: center; }
-        .status-success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
-        .status-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s ease-in-out infinite; display: none; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 600px) { .input-group { grid-template-columns: 1fr; } main { padding: 1.5rem; } h1 { font-size: 2rem; } }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--background); color: var(--text-main); min-height: 100vh; padding: 2rem 1rem; }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        .hidden { display: none !important; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        h1 { font-size: 2rem; color: var(--primary); }
+        .btn-nav { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: 600; }
+        .btn-nav:hover { background: #eef2ff; }
+
+        .card { background: var(--surface); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-main); }
+        input[type="date"], input[type="number"] { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; }
+        
+        .file-upload { border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; background: #fafafa; }
+        .file-upload:hover { border-color: var(--primary); background: #eef2ff; }
+        .file-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+        
+        .btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text-main); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; }
+
+        .table-wrapper { overflow-x: auto; background: var(--surface); border-radius: 8px; box-shadow: var(--shadow); }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f9fafb; font-weight: 600; position: sticky; top: 0; }
+        td input { width: 100%; border: 1px solid transparent; padding: 4px; border-radius: 4px; background: transparent; }
+        td input:focus { border-color: var(--primary); background: white; outline: none; }
+        
+        /* Seating Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal { background: white; width: 90%; max-width: 1000px; max-height: 90vh; overflow-y: auto; padding: 2rem; border-radius: var(--radius); position: relative; }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .facing-toggle select { padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); }
+
+        .seating-stage { background: #374151; padding: 2rem; border-radius: 8px; color: white; display: flex; flex-direction: column; align-items: center; margin-bottom: 1rem; position: relative; }
+        .blackboard { width: 70%; height: 24px; background: #1f2937; border-bottom: 4px solid #d1d5db; margin-bottom: 2rem; text-align: center; line-height: 24px; font-size: 0.8rem; letter-spacing: 2px; border-radius: 4px; position: relative; z-index: 10;}
+        
+        .direction-indicator { position: absolute; font-size: 0.7rem; background: #4b5563; padding: 2px 6px; border-radius: 4px; color: white; }
+        .dir-left { left: 5px; top: 50%; transform: translateY(-50%); }
+        .dir-right { right: 5px; top: 50%; transform: translateY(-50%); }
+
+        .seating-grid { display: grid; gap: 4px; margin: 0 auto; }
+        .seat { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; border-radius: 4px; position: relative; transition: transform 0.2s; }
+        .seat:hover { transform: scale(1.05); z-index: 5; }
+        
+        /* Individual Chairs */
+        .seat-desk { width: 40px; height: 40px; background: #e5e7eb; color: #374151; border: 1px solid #d1d5db; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        
+        /* Benches */
+        .seat-bench { width: 100px; height: 35px; background: #93c5fd; color: #1e3a8a; border: 1px solid #60a5fa; display: flex; justify-content: space-around; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
+
+        /* Group Colors */
+        .group-span { padding: 0 4px; border-radius: 3px; }
+        .group-A { background-color: #fee2e2; color: #991b1b; } 
+        .group-B { background-color: #d1fae5; color: #065f46; } 
+        .group-C { background-color: #fef3c7; color: #92400e; } 
+        .group-D { background-color: #e0e7ff; color: #3730a3; } 
+
+        .toast { position: fixed; bottom: 2rem; right: 2rem; background: #333; color: white; padding: 1rem 2rem; border-radius: 8px; z-index: 2000; transform: translateY(150%); transition: transform 0.3s; }
+        .toast.show { transform: translateY(0); }
     </style>
 </head>
 <body>
+
+<div class="container">
     <header>
-        <h1>Exam Scheduler</h1>
-        <p class="subtitle">Generate, Verify, and Edit Timetables</p>
+        <h1>🎓 Exam Scheduler</h1>
+        <nav>
+            <button id="nav-home" class="btn-nav hidden" onclick="showSection('home')">New Schedule</button>
+        </nav>
     </header>
-    <main>
-        <form id="scheduleForm">
-            <div class="form-section">
-                <div class="section-title">Configuration</div>
-                <div class="input-group">
-                    <div class="field">
-                        <label for="start_date">Start Date</label>
+
+    <!-- SECTION 1: GENERATOR -->
+    <main id="section-home">
+        <div class="card">
+            <h2>Generate Schedule</h2>
+            <form id="scheduleForm">
+                <div class="form-grid">
+                    <div>
+                        <label>Start Date</label>
                         <input type="date" id="start_date" name="start_date" required>
                     </div>
-                    <div class="field">
-                        <label for="courses_per_room">Courses per Room</label>
+                    <div>
+                        <label>Courses per Room</label>
                         <input type="number" id="courses_per_room" name="courses_per_room" value="2" min="1" max="10" required>
                     </div>
                 </div>
-            </div>
-            <div class="form-section">
-                <div class="section-title">Data Upload</div>
-                <div class="file-upload-grid">
-                    <div class="file-drop-area" id="drop-courses">
-                        <svg class="icon-upload" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,11L8,13L10,15V13H16V11H10V11Z" /></svg>
-                        <span class="file-msg">Courses.xlsx</span>
-                        <input class="file-input" type="file" id="courses" name="courses" accept=".xlsx, .xls" required>
-                        <div class="file-name" id="name-courses"></div>
+
+                <div class="file-list">
+                    <div class="file-upload" onclick="document.getElementById('courses').click()">
+                        <div>📁 Courses (Excel)</div>
+                        <small id="name-courses" class="text-muted">No file selected</small>
+                        <input type="file" id="courses" name="courses" accept=".xlsx, .xls" class="hidden" required onchange="updateName(this)">
                     </div>
-                    <div class="file-drop-area" id="drop-rooms">
-                        <svg class="icon-upload" viewBox="0 0 24 24"><path d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,6.33 7.14,5.13 9,5.13V3H11V5.13C12.86,5.13 14.44,6.33 15,8H5M19,8V21H5V8H19M17,16V14H7V16H17M17,13V11H7V13H17Z" /></svg>
-                        <span class="file-msg">Rooms.xlsx</span>
-                        <input class="file-input" type="file" id="rooms" name="rooms" accept=".xlsx, .xls" required>
-                        <div class="file-name" id="name-rooms"></div>
+                    <div class="file-upload" onclick="document.getElementById('rooms').click()">
+                        <div>🚪 Rooms (Excel)</div>
+                        <small id="name-rooms" class="text-muted">No file selected</small>
+                        <input type="file" id="rooms" name="rooms" accept=".xlsx, .xls" class="hidden" required onchange="updateName(this)">
                     </div>
-                    <div class="file-drop-area" id="drop-faculty">
-                        <svg class="icon-upload" viewBox="0 0 24 24"><path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z" /></svg>
-                        <span class="file-msg">Faculty.csv</span>
-                        <input class="file-input" type="file" id="faculty" name="faculty" accept=".csv" required>
-                        <div class="file-name" id="name-faculty"></div>
+                    <div class="file-upload" onclick="document.getElementById('faculty').click()">
+                        <div>👨‍🏫 Faculty (CSV)</div>
+                        <small id="name-faculty" class="text-muted">No file selected</small>
+                        <input type="file" id="faculty" name="faculty" accept=".csv" class="hidden" required onchange="updateName(this)">
                     </div>
                 </div>
-            </div>
-            <div class="actions">
-                <button type="submit" class="btn-primary" id="submitBtn">
-                    <div class="spinner" id="loadingSpinner"></div>
-                    <span id="btnText">Generate Timetable</span>
-                </button>
-            </div>
-        </form>
-        <div id="status-area"></div>
+
+                <div style="margin-top: 2rem; text-align: right;">
+                    <button type="submit" class="btn btn-primary" id="generateBtn">
+                        <span>Generate Timetable</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('scheduleForm');
-            const submitBtn = document.getElementById('submitBtn');
-            const spinner = document.getElementById('loadingSpinner');
-            const btnText = document.getElementById('btnText');
-            const statusArea = document.getElementById('status-area');
+    <!-- SECTION 2: VIEW & EDIT -->
+    <main id="section-view" class="hidden">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-val" id="stat-courses">0</div>
+                <div class="stat-label">Courses Scheduled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="stat-students">0</div>
+                <div class="stat-label">Students Assigned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="stat-status" style="font-size: 1rem; line-height: 2.5rem;">Checking...</div>
+                <div class="stat-label">Status</div>
+            </div>
+        </div>
 
-            const inputs = ['courses', 'rooms', 'faculty'];
-            inputs.forEach(id => {
-                const input = document.getElementById(id);
-                const dropZone = document.getElementById(`drop-${id}`);
-                const nameDisplay = document.getElementById(`name-${id}`);
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="downloadExcel()">Download Excel</button>
+            <button class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
+        </div>
 
-                input.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        nameDisplay.textContent = e.target.files[0].name;
-                        dropZone.style.borderColor = 'var(--primary)';
-                        dropZone.style.backgroundColor = '#eef2ff';
-                    }
-                });
+        <div class="table-wrapper">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Slot</th>
+                        <th>Room (Capacity)</th>
+                        <th>Faculty</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>Students</th>
+                        <th>Roll Numbers</th>
+                        <th>Seating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
 
-                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                    dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); });
-                });
-                ['dragenter', 'dragover'].forEach(eventName => {
-                    dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'));
-                });
-                ['dragleave', 'drop'].forEach(eventName => {
-                    dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'));
-                });
-                dropZone.addEventListener('drop', (e) => {
-                    input.files = e.dataTransfer.files;
-                    input.dispatchEvent(new Event('change'));
-                });
-            });
+<!-- SEATING MODAL -->
+<div class="modal-overlay" id="seatingModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        
+        <div class="modal-header">
+            <div>
+                <h2 id="modalTitle">Room Layout</h2>
+                <p id="modalSubtitle" style="color: #6b7280; margin-bottom: 0;"></p>
+            </div>
+            <div class="facing-toggle">
+                <label style="font-size:0.8rem;">View Facing:</label>
+                <select id="facingSelect" onchange="updateFacing()">
+                    <option value="E">East Facing</option>
+                    <option value="W">West Facing</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="seating-stage" id="stageArea">
+            <div class="direction-indicator dir-left" id="dirLeft">WINDOW</div>
+            <div class="direction-indicator dir-right" id="dirRight">DOOR</div>
+            <div class="blackboard">FRONT (BLACKBOARD)</div>
+            <div id="seatingGrid" class="seating-grid"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #374151;" id="modalLegend">
+            <!-- Legend injected here -->
+        </div>
+    </div>
+</div>
 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('start_date').value = today;
+<div id="toast" class="toast">Action Successful</div>
 
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                submitBtn.disabled = true;
-                spinner.style.display = 'block';
-                btnText.textContent = 'Processing...';
-                statusArea.style.display = 'none';
+<script>
+    const state = {
+        schedule: [],
+        config: {},
+        verification: {},
+        currentLayout: null
+    };
 
-                const formData = new FormData(form);
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('start_date').valueAsDate = new Date();
+    });
 
-                try {
-                    const response = await fetch('/generate', { method: 'POST', body: formData });
-                    
-                    if (response.ok) {
-                        // 1. Download the file
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `Exam_Schedule_${formData.get('start_date')}.xlsx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
+    function updateName(input) {
+        document.getElementById(`name-${input.id}`).textContent = input.files[0].name;
+    }
 
-                        // 2. Show success message with link
-                        showStatus('Timetable generated! Click below to view/edit.', 'success');
-                        
-                        // 3. Create a clear button/link to View
-                        const viewContainer = document.querySelector('.actions');
-                        // Remove previous buttons if any
-                        const oldBtn = document.getElementById('viewBtn');
-                        if(oldBtn) oldBtn.remove();
-                        
-                        const viewBtn = document.createElement('a');
-                        viewBtn.href = '/view';
-                        viewBtn.id = 'viewBtn';
-                        viewBtn.className = 'btn-primary';
-                        viewBtn.style.marginTop = '15px';
-                        viewBtn.style.background = 'white';
-                        viewBtn.style.color = 'var(--primary)';
-                        viewBtn.style.border = '2px solid var(--primary)';
-                        viewBtn.style.textDecoration = 'none';
-                        viewBtn.style.display = 'inline-block';
-                        viewBtn.textContent = 'View & Edit Timetable';
-                        
-                        viewContainer.appendChild(viewBtn);
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.background = type === 'error' ? '#ef4444' : '#10b981';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
 
-                    } else {
-                        const errData = await response.json();
-                        showStatus(`Error: ${errData.error || 'Unknown error'}`, 'error');
-                    }
-                } catch (err) {
-                    showStatus('Network error.', 'error');
-                    console.error(err);
-                } finally {
-                    submitBtn.disabled = false;
-                    spinner.style.display = 'none';
-                    btnText.textContent = 'Generate Timetable';
-                }
-            });
+    function showSection(section) {
+        document.getElementById('section-home').classList.add('hidden');
+        document.getElementById('section-view').classList.add('hidden');
+        document.getElementById('nav-home').classList.add('hidden');
 
-            function showStatus(message, type) {
-                statusArea.innerHTML = message; // Use innerHTML to allow links if needed
-                statusArea.style.display = 'block';
-                statusArea.className = type === 'success' ? 'status-success' : 'status-error';
+        if (section === 'home') {
+            document.getElementById('section-home').classList.remove('hidden');
+        } else {
+            document.getElementById('section-view').classList.remove('hidden');
+            document.getElementById('nav-home').classList.remove('hidden');
+            loadSchedule();
+        }
+    }
+
+    document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('generateBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Processing...';
+        btn.disabled = true;
+
+        const formData = new FormData(e.target);
+
+        try {
+            const res = await fetch('/generate', { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message);
+                showSection('view');
+            } else {
+                showToast(data.error, 'error');
             }
+        } catch (err) {
+            showToast('Network error', 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    async function loadSchedule() {
+        try {
+            const res = await fetch('/view');
+            if (!res.ok) throw new Error('Failed to load');
+            const data = await res.json();
+            
+            state.schedule = data.schedule;
+            state.config = data.config;
+            state.verification = data.verification;
+
+            renderDashboard();
+            renderTable();
+        } catch (err) {
+            showToast(err.message, 'error');
+            showSection('home');
+        }
+    }
+
+    function renderDashboard() {
+        document.getElementById('stat-courses').textContent = state.verification.scheduled_courses;
+        document.getElementById('stat-students').textContent = state.verification.scheduled_students;
+        
+        const statusEl = document.getElementById('stat-status');
+        statusEl.textContent = state.verification.status;
+        statusEl.style.color = state.verification.status === 'Success' ? 'var(--success)' : '#f59e0b';
+    }
+
+    function renderTable() {
+        const tbody = document.querySelector('#scheduleTable tbody');
+        tbody.innerHTML = '';
+        
+        state.schedule.forEach((row, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="date" value="${row.Date}" onchange="updateData(${idx}, 'Date', this.value)"></td>
+                <td><input type="text" value="${row.Slot}" onchange="updateData(${idx}, 'Slot', this.value)"></td>
+                <td>
+                    <input type="text" value="${row.Room}" readonly style="background:#f3f4f6; font-weight:600;">
+                    <div style="font-size:0.7rem; color:#6b7280;">Cap: ${row.RoomCapacity}</div>
+                </td>
+                <td><input type="text" value="${row.Faculty}" onchange="updateData(${idx}, 'Faculty', this.value)"></td>
+                <td><input type="text" value="${row.Course}" onchange="updateData(${idx}, 'Course', this.value)"></td>
+                <td><input type="text" value="${row.Year}" onchange="updateData(${idx}, 'Year', this.value)"></td>
+                <td><input type="number" value="${row['Student Count']}" readonly style="width: 60px; background:#f3f4f6;"></td>
+                <td><input type="text" value="${row['Roll Numbers']}" style="font-size:0.8em;" oninput="updateCount(this, ${idx})"></td>
+                <td>
+                    <button class="btn-secondary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="openSeating(${idx})">
+                        🪑 Layout
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
-    </script>
+    }
+
+    function updateData(idx, field, val) {
+        state.schedule[idx][field] = val;
+    }
+
+    function updateCount(input, idx) {
+        const rolls = input.value;
+        const count = rolls.trim() === '' ? 0 : rolls.split(',').length;
+        state.schedule[idx]['Student Count'] = count;
+        input.parentElement.previousElementSibling.querySelector('input').value = count;
+    }
+
+    async function saveChanges() {
+        try {
+            const res = await fetch('/save_changes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rows: state.schedule })
+            });
+            const data = await res.json();
+            if (data.success) showToast('Saved successfully!');
+            else showToast(data.error, 'error');
+        } catch (err) {
+            showToast('Error saving', 'error');
+        }
+    }
+
+    function downloadExcel() {
+        if (state.config.schedule_file) {
+            window.location.href = `/uploads/${state.config.schedule_file}`;
+        }
+    }
+
+    async function openSeating(idx) {
+        const row = state.schedule[idx];
+        const cap = row.RoomCapacity;
+        const groups = state.config.courses_per_room || 2;
+        const roomName = row.BaseRoom; 
+
+        document.getElementById('modalTitle').textContent = `Seating: ${row.Room}`;
+        document.getElementById('modalSubtitle').textContent = `Capacity: ${cap} | Groups: ${groups}`;
+
+        try {
+            const res = await fetch('/api/seating', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ capacity: cap, groups: groups, room_name: roomName })
+            });
+            const layout = await res.json();
+            state.currentLayout = layout;
+            
+            renderGrid(layout);
+            updateFacing();
+            
+            document.getElementById('seatingModal').classList.add('open');
+        } catch (err) {
+            showToast('Failed to generate layout', 'error');
+        }
+    }
+
+    function updateFacing() {
+        const facing = document.getElementById('facingSelect').value;
+        const left = document.getElementById('dirLeft');
+        const right = document.getElementById('dirRight');
+
+        if (facing === 'E') {
+            left.textContent = "WINDOW"; right.textContent = "DOOR";
+        } else {
+            left.textContent = "DOOR"; right.textContent = "WINDOW";
+        }
+    }
+
+    function renderGrid(layout) {
+        const container = document.getElementById('seatingGrid');
+        container.innerHTML = '';
+        container.style.gridTemplateColumns = `repeat(${layout.cols}, 1fr)`;
+
+        const isBench = layout.type === 'bench';
+
+        layout.grid.forEach(row => {
+            row.forEach(cellData => {
+                const div = document.createElement('div');
+                
+                if (isBench) {
+                    div.className = 'seat seat-bench';
+                } else {
+                    div.className = 'seat seat-desk';
+                }
+
+                // Split "A1 B1" or just "A1" into spans
+                const parts = cellData.trim().split(/\s+/);
+                
+                const htmlContent = parts.map(part => {
+                    const groupChar = part.charAt(0); // Extract 'A'
+                    return `<span class="group-span group-${groupChar}">${part}</span>`;
+                }).join('');
+
+                div.innerHTML = htmlContent;
+                container.appendChild(div);
+            });
+        });
+
+        document.getElementById('modalLegend').innerHTML = `
+            Grid: ${layout.rows} Rows x ${layout.cols} Cols<br>
+            Layout Type: ${layout.type.toUpperCase()}<br>
+            ${isBench ? "Bench Mode: Groups stacked per bench." : "Individual Mode: Groups alternate per chair."}
+        `;
+    }
+
+    function closeModal() {
+        document.getElementById('seatingModal').classList.remove('open');
+    }
+
+    document.getElementById('seatingModal').addEventListener('click', (e) => {
+        if (e.target.id === 'seatingModal') closeModal();
+    });
+
+</script>
 </body>
 </html>

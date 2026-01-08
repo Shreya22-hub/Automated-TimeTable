@@ -1,28 +1,74 @@
 import os
 import json
 import pandas as pd
-import re
+import math
+import string
 from datetime import datetime, timedelta
 from itertools import cycle
 from flask import Flask, render_template, request, send_file, jsonify, session
 from werkzeug.utils import secure_filename
-from werkzeug.security import safe_join
-import traceback
 
 app = Flask(__name__, template_folder="app3")
-app.secret_key = 'exam_scheduler_secret_key_v2'  # Ensure this is set
+app.secret_key = 'exam_scheduler_secret_key_v2'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
+# -----------------------------------------------------------
+# SEATING LOGIC (Mixed: Bench = All Groups, Individual = Alternating)
+# -----------------------------------------------------------
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def get_seating_layout(rows, cols, seat_type, num_groups, room_name="Standard"):
+    """
+    Generates a 2D grid.
+    - If BENCH: Every bench contains all groups ("A1 B1 C1").
+    - If INDIVIDUAL: Seats alternate groups ("A1", "B1", "A2", "B2").
+    """
+    
+    num_groups = min(max(1, num_groups), 4) # Limit to 4 groups A,B,C,D
+    group_chars = list(string.ascii_uppercase[:num_groups])
+    seat_type = seat_type.lower().strip()
+    
+    grid = []
+    label_counters = {char: 1 for char in group_chars}
+    
+    if seat_type == "bench":
+        # BENCH MODE: Each cell gets all group labels
+        for r in range(rows):
+            row_data = []
+            for c in range(cols):
+                sub_labels = []
+                for group_char in group_chars:
+                    label = f"{group_char}{label_counters[group_char]}"
+                    sub_labels.append(label)
+                    label_counters[group_char] += 1
+                row_data.append(" ".join(sub_labels))
+            grid.append(row_data)
+            
+    else: 
+        # INDIVIDUAL MODE: Cells alternate groups
+        for r in range(rows):
+            row_data = []
+            for c in range(cols):
+                # Determine group based on linear position in grid
+                idx = r * cols + c
+                group_char = group_chars[idx % num_groups]
+                
+                label = f"{group_char}{label_counters[group_char]}"
+                label_counters[group_char] += 1
+                row_data.append(label)
+            grid.append(row_data)
+
+    return {
+        "grid": grid,
+        "type": seat_type, 
+        "rows": rows, "cols": cols,
+        "room_name": room_name
+    }
 
 # -----------------------------------------------------------
-# LOGIC
+# SCHEDULING LOGIC
 # -----------------------------------------------------------
 
 SLOTS = ["Morning", "Evening"]
@@ -31,15 +77,8 @@ def next_date(date_str, days=1):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     return (dt + timedelta(days=days)).strftime("%Y-%m-%d")
 
-def is_special_room(room_name):
-    match = re.match(r'C40([3-8])', room_name.strip())
-    return match is not None
-
 def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folder, start_date, courses_per_room):
     
-    # 1. Define Filenames
-    # We use the same timestamp for all files to group them logically, 
-    # but we will link them explicitly in the session.
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     excel_filename = f"exam_schedule_{start_date}_{timestamp}.xlsx"
     excel_path = os.path.join(output_folder, excel_filename)
@@ -50,26 +89,42 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
     snapshot_filename = f"verification_snapshot_{timestamp}.json"
     snapshot_path = os.path.join(output_folder, snapshot_filename)
 
-    # 2. Read Rooms
     try:
         rooms_df = pd.read_excel(rooms_path)
     except Exception as e:
         raise ValueError(f"Error reading Rooms file: {str(e)}")
 
     total_capacity = 0
+    room_map = {} 
+    room_layouts_map = {} 
+
     for _, r in rooms_df.iterrows():
         try:
             cap = int(r["Capacity"])
         except ValueError:
             continue
         room_name = str(r["Room"])
-        is_special = is_special_room(room_name)
-        if is_special:
-            total_capacity += cap
-        else:
-            total_capacity += cap * courses_per_room
+        
+        parsed_layout = {"rows": 0, "cols": 0, "type": "individual"}
+        
+        if "layout" in r and pd.notna(r["layout"]):
+            try:
+                parts = [p.strip() for p in str(r["layout"]).split(',')]
+                if len(parts) >= 3:
+                    parsed_layout["rows"] = int(parts[0])
+                    parsed_layout["cols"] = int(parts[1])
+                    parsed_layout["type"] = parts[2].lower().strip()
+            except Exception:
+                pass 
+        
+        room_layouts_map[room_name] = parsed_layout
+        room_map[room_name] = cap
+        total_capacity += cap * courses_per_room
     
-    # Save Config
+    room_layouts_file = os.path.join(output_folder, "room_layouts.json")
+    with open(room_layouts_file, 'w') as f:
+        json.dump(room_layouts_map, f, indent=4)
+    
     config = {
         "max_students_per_slot": total_capacity,
         "courses_per_room": courses_per_room,
@@ -80,7 +135,6 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=4)
 
-    # 3. Read Courses & Build Snapshot
     try:
         xls = pd.ExcelFile(courses_path)
     except Exception as e:
@@ -115,7 +169,6 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
     if not students_data:
         raise ValueError("No valid student/course data found.")
 
-    # Save Snapshot
     verification_snapshot = {
         "total_input_courses": len(input_courses_set),
         "total_input_students": len(input_students_set)
@@ -123,20 +176,16 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
     with open(snapshot_path, 'w') as f:
         json.dump(verification_snapshot, f, indent=4)
 
-    # 4. Prepare Rooms & Faculty
     rooms = []
     for _, r in rooms_df.iterrows():
         try:
             cap = int(r["Capacity"])
         except ValueError: continue
         room_name = str(r["Room"])
-        is_special = is_special_room(room_name)
-        if is_special: capacity_per_division = cap // courses_per_room
-        else: capacity_per_division = cap
-        
         rooms.append({
             "Room": room_name, "TotalCapacity": cap,
-            "CapacityPerDivision": capacity_per_division, "IsSpecial": is_special
+            "CapacityPerDivision": cap, 
+            "IsSpecial": False 
         })
 
     try:
@@ -149,7 +198,6 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
     faculty_cycle = cycle(faculty_list)
     room_faculty_map = {room["Room"]: next(faculty_cycle) for room in rooms}
 
-    # 5. Algorithm
     schedule = []
     current_date = start_date
     slot_index = 0
@@ -195,14 +243,15 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
                 faculty = room_faculty_map[room["Room"]]
                 
                 division_number = divisions_used + 1
-                if room["IsSpecial"]:
-                    room_display = f"{room['Room']} (Division {division_number}/{courses_per_room})"
-                else:
-                    room_display = f"{room['Room']} (Section {division_number}/{courses_per_room})"
+                room_display = f"{room['Room']} (Sec {division_number}/{courses_per_room})"
+                
+                base_room_name = room["Room"]
+                total_room_cap = room["TotalCapacity"]
                 
                 course_allocations.append({
                     "Date": current_date, "Slot": SLOTS[slot_index],
-                    "Room": room_display, "Course": course, "Year": year,
+                    "Room": room_display, "BaseRoom": base_room_name, "RoomCapacity": total_room_cap,
+                    "Course": course, "Year": year,
                     "Faculty": faculty, "Student Count": len(roll_slice),
                     "Roll Numbers": ", ".join(roll_slice)
                 })
@@ -236,7 +285,6 @@ def index():
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    # Validation
     if 'courses' not in request.files or 'rooms' not in request.files or 'faculty' not in request.files:
         return jsonify({"error": "Missing files."}), 400
     
@@ -259,29 +307,27 @@ def generate():
     try:
         for k, f in files.items(): f.save(paths[k])
         
-        # Run Logic
         result_excel, result_snapshot = generate_schedule_logic(
             paths['courses'], paths['rooms'], paths['faculty'], 
             base_path, start_date, courses_per_room
         )
         
-        # === FIX: Store both Excel and Snapshot in session ===
         session['last_schedule'] = os.path.basename(result_excel)
         session['last_snapshot'] = os.path.basename(result_snapshot)
         
-        return send_file(result_excel, as_attachment=True, download_name=f"Exam_Schedule_{start_date}.xlsx")
+        return jsonify({"success": True, "message": "Schedule generated successfully"})
         
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 400
     except Exception as e:
+        import traceback
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 @app.route('/view', methods=['GET'])
 def view_schedule():
-    # === FIX: Check session strictly ===
     if 'last_schedule' not in session or 'last_snapshot' not in session:
-        return render_template('view.html', error="No active schedule. Please generate a schedule first.")
+        return jsonify({"error": "No active schedule. Please generate a schedule first."}), 400
     
     excel_name = session['last_schedule']
     snapshot_name = session['last_snapshot']
@@ -290,43 +336,33 @@ def view_schedule():
     snapshot_path = os.path.join(app.config['UPLOAD_FOLDER'], snapshot_name)
     
     if not os.path.exists(excel_path):
-        return render_template('view.html', error="Excel file missing from server.")
+        return jsonify({"error": "Excel file missing from server."}), 400
     
-    # 1. Load Data
     try:
         df = pd.read_excel(excel_path)
         schedule_data = df.to_dict(orient='records')
     except Exception as e:
-        return render_template('view.html', error=f"Error reading Excel: {str(e)}")
+        return jsonify({"error": f"Error reading Excel: {str(e)}"}), 500
 
-    # 2. Load Config
     config_data = {}
     config_path = os.path.join(app.config['UPLOAD_FOLDER'], "configurations.json")
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
             config_data = json.load(f)
 
-    # 3. Verification Logic
     verification = {
-        "status": "Unknown",
-        "input_courses": 0,
-        "scheduled_courses": 0,
-        "input_students": 0,
-        "scheduled_students": 0,
-        "message": ""
+        "status": "Unknown", "input_courses": 0, "scheduled_courses": 0,
+        "input_students": 0, "scheduled_students": 0, "message": ""
     }
 
     if os.path.exists(snapshot_path):
         with open(snapshot_path, 'r') as f:
             snapshot = json.load(f)
-        
         verification['input_courses'] = snapshot['total_input_courses']
         verification['input_students'] = snapshot['total_input_students']
 
-        # Calculate from current Excel data
         scheduled_course_names = set()
         scheduled_student_rolls = set()
-
         for row in schedule_data:
             if 'Course' in row: scheduled_course_names.add(row['Course'])
             if 'Roll Numbers' in row:
@@ -344,13 +380,44 @@ def view_schedule():
             missing = verification['input_students'] - verification['scheduled_students']
             if missing > 0:
                  verification['message'] = f"Warning: {missing} students missing."
-    else:
-        verification['message'] = "Snapshot file not found. Verification data unavailable."
+    
+    return jsonify({
+        "schedule": schedule_data, 
+        "config": config_data, 
+        "verification": verification
+    })
 
-    return render_template('view.html', 
-                           schedule=schedule_data, 
-                           config=config_data, 
-                           verification=verification)
+@app.route('/api/seating', methods=['POST'])
+def api_seating():
+    data = request.json
+    groups = int(data.get('groups', 2))
+    room_name = data.get('room_name', "Standard")
+    
+    layout_path = os.path.join(app.config['UPLOAD_FOLDER'], "room_layouts.json")
+    rows, cols, seat_type = 10, 10, "individual"
+    
+    if os.path.exists(layout_path):
+        with open(layout_path, 'r') as f:
+            layouts = json.load(f)
+            if room_name in layouts:
+                info = layouts[room_name]
+                if info.get('rows', 0) > 0:
+                    rows = info['rows']
+                    cols = info['cols']
+                    seat_type = info['type']
+                else:
+                    capacity = int(data.get('capacity', 60))
+                    cols = int(math.ceil(math.sqrt(capacity)))
+                    rows = int(math.ceil(capacity / cols))
+                    seat_type = "individual"
+    else:
+        capacity = int(data.get('capacity', 60))
+        cols = int(math.ceil(math.sqrt(capacity)))
+        rows = int(math.ceil(capacity / cols))
+        seat_type = "individual"
+
+    layout = get_seating_layout(rows, cols, seat_type, groups, room_name)
+    return jsonify(layout)
 
 @app.route('/save_changes', methods=['POST'])
 def save_changes():
@@ -363,17 +430,17 @@ def save_changes():
     try:
         updated_rows = request.json.get('rows', [])
         if not updated_rows: return jsonify({"error": "No data"}), 400
-        
         df_new = pd.DataFrame(updated_rows)
         df_new.to_excel(file_path, index=False)
         return jsonify({"success": True})
     except Exception as e:
+        import traceback
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5002) 
