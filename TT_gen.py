@@ -43,7 +43,8 @@ DEFAULT_CONFIG = {
         ["11:30", "12:00"],
         ["12:00", "12:15"],
         ["12:15", "12:30"],
-        ["12:30", "13:00"],
+        ["12:30", "12:45"],
+        ["12:45", "13:00"],
         ["13:00", "13:30"],
         ["13:30", "14:00"],
         ["14:00", "14:30"],
@@ -53,7 +54,8 @@ DEFAULT_CONFIG = {
         ["15:40", "16:00"],
         ["16:00", "16:30"],
         ["16:30", "17:00"],
-        ["17:00", "17:30"],
+        ["17:00", "17:15"],
+        ["17:15", "17:30"],
         ["17:30", "18:00"],
         ["18:00", "18:30"],
         ["18:30", "23:59"]
@@ -251,12 +253,16 @@ def is_break_time_slot(slot, semester=None, comp_type=None, config=None):
     LUNCH_BREAK_END = parse_time_string(config.get("LUNCH_BREAK_END", "13:45"))
     LECTURE_TUTORIAL_BREAK_START = parse_time_string(config.get("LECTURE_TUTORIAL_BREAK_START", "15:30"))
     LECTURE_TUTORIAL_BREAK_END = parse_time_string(config.get("LECTURE_TUTORIAL_BREAK_END", "15:40"))
+    evening_start = parse_time_string("17:00")
+    evening_end = parse_time_string("17:15")
     
     if overlaps(start, end, MORNING_BREAK_START, MORNING_BREAK_END):
         return True
     if overlaps(start, end, LUNCH_BREAK_START, LUNCH_BREAK_END):
         return True
     if comp_type in ['LEC', 'TUT'] and overlaps(start, end, LECTURE_TUTORIAL_BREAK_START, LECTURE_TUTORIAL_BREAK_END):
+        return True
+    if evening_start <= slot[0] < evening_end:
         return True
     return False
 
@@ -331,10 +337,16 @@ def calculate_required_sessions(course_row, config):
     
     return (lec_sessions, tut_sessions, lab_sessions, ss_sessions, lab_duration)
 
-def get_required_room_type(course_row):
+def get_required_room_type(course_row, comp_type):
     try:
-        p = int(course_row['P']) if ('P' in course_row and pd.notna(course_row['P'])) else 0
-        return 'COMPUTER_LAB' if p > 0 else 'LECTURE_ROOM'
+        if comp_type == 'LAB':
+            return 'COMPUTER_LAB'
+        elif comp_type == 'LEC' or comp_type == 'TUT':
+            return 'LECTURE_ROOM'
+        elif comp_type == 'AUD':
+            return 'AUDITORIUM'
+        else:
+            return 'LECTURE_ROOM'
     except:
         return 'LECTURE_ROOM'
 
@@ -346,8 +358,8 @@ def is_auditorium_course(course_row):
 # ---------------------------
 # Room allocation
 # ---------------------------
-def find_suitable_room_for_slot(course_code, room_type, day, slot_indices, room_schedule, course_room_mapping, config, lecture_rooms, computer_lab_rooms, auditorium_rooms):
-    if course_code in course_room_mapping:
+def find_suitable_room_for_slot(course_code, room_type, day, slot_indices, room_schedule, course_room_mapping, config, lecture_rooms, computer_lab_rooms, auditorium_rooms, comp_type):
+    if comp_type != 'AUD' and course_code in course_room_mapping:
         fixed_room = course_room_mapping[course_code]
         for si in slot_indices:
             if si in room_schedule[fixed_room][day]:
@@ -373,24 +385,48 @@ def find_suitable_room_for_slot(course_code, room_type, day, slot_indices, room_
             return room
     return None
 
-def find_consecutive_slots_for_minutes(timetable, day, start_idx, required_minutes,
-                                       semester, professor_schedule, faculty,
-                                       room_schedule, room_type, course_code, course_room_mapping, comp_type, config, TIME_SLOTS, lecture_rooms, computer_lab_rooms, auditorium_rooms):
+def find_consecutive_slots_for_minutes(
+        timetable, day, start_idx, required_minutes,
+        semester, professor_schedule, faculty,
+        room_schedule, room_type, course_code,
+        course_room_mapping, comp_type, config,
+        TIME_SLOTS, lecture_rooms, computer_lab_rooms,
+        auditorium_rooms):
+
+    # 🔥 FIX: Decide room type based on component type
+    if comp_type == 'LAB':
+        room_type = 'COMPUTER_LAB'
+    elif comp_type == 'LEC' or comp_type == 'TUT':
+        room_type = 'LECTURE_ROOM'
+    elif comp_type == 'AUD':
+        room_type = 'AUDITORIUM'
+    else:
+        room_type = 'LECTURE_ROOM'
+
     n = len(TIME_SLOTS)
     slot_indices = []
     i = start_idx
     accumulated = 0
 
     while i < n and accumulated < required_minutes:
+
+        # Minor slot check
         if is_minor_slot(TIME_SLOTS[i]):
             return None, None
+
+        # Break time check
         if is_break_time_slot(TIME_SLOTS[i], semester, comp_type, config):
             return None, None
+
+        # Already occupied
         if timetable[day][i]['type'] is not None:
             return None, None
+
+        # Professor busy
         if faculty in professor_schedule and i in professor_schedule[faculty][day]:
             return None, None
-        
+
+        # Room availability basic check
         if room_type == 'COMPUTER_LAB' and not computer_lab_rooms:
             return None, None
         if room_type == 'LECTURE_ROOM' and not lecture_rooms:
@@ -403,7 +439,20 @@ def find_consecutive_slots_for_minutes(timetable, day, start_idx, required_minut
         i += 1
 
     if accumulated >= required_minutes:
-        room = find_suitable_room_for_slot(course_code, room_type, day, slot_indices, room_schedule, course_room_mapping, config, lecture_rooms, computer_lab_rooms, auditorium_rooms)
+        room = find_suitable_room_for_slot(
+            course_code,
+            room_type,
+            day,
+            slot_indices,
+            room_schedule,
+            course_room_mapping,
+            config,
+            lecture_rooms,
+            computer_lab_rooms,
+            auditorium_rooms,
+            comp_type
+        )
+
         if room is not None:
             return slot_indices, room
 
@@ -425,7 +474,7 @@ def check_professor_availability(professor_schedule, faculty, day, start_idx, du
         return True
     new_start = TIME_SLOTS[start_idx][0]
     new_start_m = new_start.hour*60 + new_start.minute
-    MIN_GAP = 180
+    MIN_GAP = 120
     for s in professor_schedule[faculty][day]:
         exist_start = TIME_SLOTS[s][0]
         exist_m = exist_start.hour*60 + exist_start.minute
@@ -1166,28 +1215,41 @@ def write_basket_only_sheet(ws, timetable, semester, electives_data, config, TIM
             cell.fill = PatternFill(start_color="F0F0F0", end_color="F0F0F0", fill_type="solid")
             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         current_row += 1
-
         scheduled_electives_list = []
-        for (day_idx, slot_idx), basket_info in basket_slot_mapping.items():
+
+        # IMPORTANT: iterate in sorted (day, slot) order
+        for (day_idx, slot_idx) in sorted(basket_slot_mapping.keys()):
+
+            basket_info = basket_slot_mapping[(day_idx, slot_idx)]
+
+            # Skip if this slot is NOT the start of a block
+            if (day_idx, slot_idx - 1) in basket_slot_mapping and \
+            basket_slot_mapping[(day_idx, slot_idx - 1)]['type'] == basket_info['type']:
+                continue
+
             day_name = DAYS[day_idx]
             start_time = TIME_SLOTS[slot_idx][0].strftime('%H:%M')
+
+            # Find full continuous span
             end_slot_idx = slot_idx
-            while (end_slot_idx + 1 < len(TIME_SLOTS) and 
-                   (day_idx, end_slot_idx + 1) in basket_slot_mapping and 
-                   basket_slot_mapping[(day_idx, end_slot_idx + 1)]['type'] == basket_info['type']):
+            while (
+                end_slot_idx + 1 < len(TIME_SLOTS) and
+                (day_idx, end_slot_idx + 1) in basket_slot_mapping and
+                basket_slot_mapping[(day_idx, end_slot_idx + 1)]['type'] == basket_info['type']
+            ):
                 end_slot_idx += 1
+
             end_time = TIME_SLOTS[end_slot_idx][1].strftime('%H:%M')
             time_str = f"{start_time} - {end_time}"
 
+            # Deduplicate electives (code + room)
             seen_electives = set()
-            unique_electives = []
-            for elective in basket_info['electives']:
-                elective_id = f"{elective['code']}_{elective['room']}"
-                if elective_id not in seen_electives:
-                    seen_electives.add(elective_id)
-                    unique_electives.append(elective)
+            for elective in basket_info.get('electives', []):
+                elective_id = (elective['code'], elective['room'])
+                if elective_id in seen_electives:
+                    continue
+                seen_electives.add(elective_id)
 
-            for elective in unique_electives:
                 scheduled_electives_list.append({
                     'Elective': elective['code'],
                     'Type': basket_info['type'],
@@ -1196,25 +1258,165 @@ def write_basket_only_sheet(ws, timetable, semester, electives_data, config, TIM
                     'Room': elective['room']
                 })
 
-        scheduled_electives_list.sort(key=lambda x: (DAYS.index(x['Day']), x['Time']))
+        # Sort final output
+        scheduled_electives_list.sort(
+            key=lambda x: (DAYS.index(x['Day']), x['Time'])
+        )
 
+        # Write to Excel
         for elective_info in scheduled_electives_list:
             ws.cell(row=current_row, column=1, value=elective_info['Elective'])
             ws.cell(row=current_row, column=2, value=elective_info['Type'])
             ws.cell(row=current_row, column=3, value=elective_info['Day'])
             ws.cell(row=current_row, column=4, value=elective_info['Time'])
             ws.cell(row=current_row, column=5, value=elective_info['Room'])
-            
+
             for col in range(1, 6):
                 cell = ws.cell(row=current_row, column=col)
                 cell.border = border
                 cell.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
-            
+
             current_row += 1
-        
+
+        # Empty case
         if not scheduled_electives_list:
             ws.cell(row=current_row, column=1, value="No electives were scheduled.")
             current_row += 1
+
+def reserve_common_free_windows(all_department_timetables, DAYS, TIME_SLOTS):
+
+    from datetime import time
+
+    target_semesters = [1, 3, 5, 7]  # adjust if needed
+    start_limit = time(9, 0)
+    end_limit = time(18, 0)
+
+    reserved_days = set()
+    required_days = 2
+
+    print("\n🔒 Reserving 2 common free windows...")
+
+    for day in range(len(DAYS)):
+
+        if len(reserved_days) == required_days:
+            break
+
+        for i in range(len(TIME_SLOTS)):
+
+            total_minutes = 0
+            slot_indices = []
+
+            for j in range(i, len(TIME_SLOTS)):
+
+                slot_start = TIME_SLOTS[j][0]
+                slot_end = TIME_SLOTS[j][1]
+
+                if slot_start < start_limit or slot_end > end_limit:
+                    break
+
+                minutes = (slot_end.hour * 60 + slot_end.minute) - \
+                          (slot_start.hour * 60 + slot_start.minute)
+
+                total_minutes += minutes
+                slot_indices.append(j)
+
+                if total_minutes >= 90:
+
+                    # Reserve these slots
+                    for department in all_department_timetables:
+                        for semester in target_semesters:
+                            if semester not in all_department_timetables[department]:
+                                continue
+
+                            for section_key in all_department_timetables[department][semester]:
+                                timetable = all_department_timetables[department][semester][section_key]
+
+                                for s in slot_indices:
+                                    timetable[day][s]['type'] = 'RESERVED'
+
+                    reserved_days.add(day)
+
+                    print(f"Reserved on {DAYS[day]} "
+                          f"{TIME_SLOTS[i][0].strftime('%H:%M')} - "
+                          f"{TIME_SLOTS[slot_indices[-1]][1].strftime('%H:%M')}")
+
+                    break
+
+            if day in reserved_days:
+                break
+
+
+# def find_common_free_90min_slot(all_department_timetables, DAYS, TIME_SLOTS, config):
+#     from datetime import time
+
+#     # Adjust semesters if needed
+#     target_semesters = [3, 5, 7]   # 2nd, 3rd, 4th year
+
+#     start_limit = time(9, 0)
+#     end_limit = time(18, 0)
+
+#     print("\n🔍 Searching for common 1.5 hour free slot (09:00–18:00)...")
+
+#     for day in range(len(DAYS)):
+#         for slot in range(len(TIME_SLOTS)):
+
+#             slot_start = TIME_SLOTS[slot][0]
+#             slot_end = TIME_SLOTS[slot][1]
+
+#             # ✅ Restrict to 9–18
+#             if slot_start < start_limit or slot_end > end_limit:
+#                 continue
+
+#             # ✅ Skip break slots
+#             try:
+#                 if is_break_time_slot(TIME_SLOTS[slot], 0, 'LEC', config):
+#                     continue
+#             except:
+#                 pass
+
+#             # ✅ Skip minor slots
+#             try:
+#                 if is_minor_slot(TIME_SLOTS[slot]):
+#                     continue
+#             except:
+#                 pass
+
+#             # ✅ Ensure slot duration >= 90 minutes
+#             duration = (slot_end.hour * 60 + slot_end.minute) - \
+#                        (slot_start.hour * 60 + slot_start.minute)
+
+#             if duration < 60:
+#                 continue
+
+#             all_free = True
+
+#             for department in all_department_timetables:
+#                 for semester in target_semesters:
+
+#                     if semester not in all_department_timetables[department]:
+#                         continue
+
+#                     for section_key in all_department_timetables[department][semester]:
+#                         timetable = all_department_timetables[department][semester][section_key]
+
+#                         if timetable[day][slot]['type'] is not None:
+#                             all_free = False
+#                             break
+
+#                     if not all_free:
+#                         break
+
+#                 if not all_free:
+#                     break
+
+#             if all_free:
+#                 print("\n🔥 COMMON FREE SLOT FOUND 🔥")
+#                 print(f"Day   : {DAYS[day]}")
+#                 print(f"Time  : {slot_start.strftime('%H:%M')} - {slot_end.strftime('%H:%M')}")
+#                 return
+
+#     print("\n❌ No common 90-minute free slot found between 09:00 and 18:00.")
+
 
 # ---------------------------
 # --- NEW FUNCTION ---
@@ -1387,6 +1589,8 @@ def generate_all_timetables():
                         for s in range(len(TIME_SLOTS))} 
                     for d in range(len(DAYS))
                 }
+
+    reserve_common_free_windows(all_department_timetables, DAYS, TIME_SLOTS)
     
     # Schedule basket slots
     for semester in [1, 3, 5, 7]:
@@ -1522,7 +1726,7 @@ def generate_all_timetables():
                                             'room': room,
                                             'faculty': faculty
                                         })
-    
+
     # Schedule auditorium courses
     auditorium_courses_map = {}
     for _, course in df.iterrows():
@@ -1548,16 +1752,7 @@ def generate_all_timetables():
         course_data = course_info['course_data']
         
         required_departments = []
-        if 'CSE' in departments:
-            if 'DSAI' in departments or 'ECE' in departments:
-                required_departments = ['CSE', 'DSAI', 'ECE']
-            else:
-                required_departments = ['CSE']
-        elif 'DSAI' in departments and 'ECE' in departments:
-            required_departments = ['DSAI', 'ECE']
-        else:
-            required_departments = departments
-        
+        required_departments = list(course_info['departments'])        
         print(f"Scheduling auditorium course {code} for departments: {required_departments}")
         
         lec_sessions, tut_sessions, lab_sessions, ss_sessions, lab_duration = calculate_required_sessions(course_data, config)
@@ -1956,43 +2151,82 @@ def generate_all_timetables():
                     
                     print(f"Course {code}: L={lec_sessions}, T={tut_sessions}, P={lab_sessions}, S={ss_sessions}")
                     
-                    room_type = get_required_room_type(course)
 
                     def schedule_component(required_minutes, comp_type, attempts_limit=10000):
+                        room_type = get_required_room_type(course,comp_type)
                         for attempt in range(attempts_limit):
                             day = random.randint(0, len(DAYS)-1)
                             starts = get_all_possible_start_indices_for_duration(comp_type, TIME_SLOTS)
+
                             for start_idx in starts:
                                 if check_course_component_conflict(timetable, day, code, comp_type, TIME_SLOTS, is_aud):
                                     continue
-                                
+
                                 slot_indices, candidate_room = find_consecutive_slots_for_minutes(
                                     timetable, day, start_idx, required_minutes, semester,
                                     professor_schedule, faculty, room_schedule, room_type,
-                                    code, course_room_mapping, comp_type, config, TIME_SLOTS, lecture_rooms, computer_lab_rooms, auditorium_rooms)
+                                    code, course_room_mapping, comp_type, config,
+                                    TIME_SLOTS, lecture_rooms, computer_lab_rooms, auditorium_rooms
+                                )
 
                                 if slot_indices is None:
                                     continue
-                                if not check_professor_availability(professor_schedule, faculty, day, slot_indices[0], len(slot_indices), TIME_SLOTS):
+
+                                if not check_professor_availability(professor_schedule, faculty, day,
+                                                                    slot_indices[0], len(slot_indices), TIME_SLOTS):
                                     continue
-                                if candidate_room is None:
-                                    continue
-                                    
+
+                                # 🔥 SPECIAL HANDLING FOR LABS
+                                if comp_type == 'LAB':
+                                    required_lab_rooms = 2
+                                    available_rooms = []
+
+                                    for room in computer_lab_rooms:
+                                        if room not in room_schedule:
+                                            room_schedule[room] = {d: set() for d in range(len(DAYS))}
+
+                                        if all(si not in room_schedule[room][day] for si in slot_indices):
+                                            available_rooms.append(room)
+
+                                    if len(available_rooms) < required_lab_rooms:
+                                        continue  # Not enough lab rooms
+
+                                    selected_rooms = available_rooms[:required_lab_rooms]
+
+                                else:
+                                    if candidate_room is None:
+                                        continue
+                                    selected_rooms = [candidate_room]
+
+                                # ✅ Write into timetable
                                 for si_idx, si in enumerate(slot_indices):
-                                    timetable[day][si]['type'] = 'LEC' if comp_type == 'LEC' else ('LAB' if comp_type == 'LAB' else ('TUT' if comp_type == 'TUT' else 'SS'))
+                                    timetable[day][si]['type'] = (
+                                        'LEC' if comp_type == 'LEC'
+                                        else 'LAB' if comp_type == 'LAB'
+                                        else 'TUT' if comp_type == 'TUT'
+                                        else 'SS'
+                                    )
+
                                     timetable[day][si]['code'] = code if si_idx == 0 else ''
                                     timetable[day][si]['name'] = name if si_idx == 0 else ''
                                     timetable[day][si]['faculty'] = faculty if si_idx == 0 else ''
-                                    timetable[day][si]['classroom'] = candidate_room if si_idx == 0 else ''
-                                    # Store lab rooms for display
+                                    timetable[day][si]['classroom'] = selected_rooms[0] if si_idx == 0 else ''
+
                                     if comp_type == 'LAB':
-                                        timetable[day][si]['lab_rooms'] = [candidate_room]
+                                        timetable[day][si]['lab_rooms'] = selected_rooms
+
                                     professor_schedule[faculty][day].add(si)
-                                    if candidate_room not in room_schedule:
-                                        room_schedule[candidate_room] = {d: set() for d in range(len(DAYS))}
-                                    room_schedule[candidate_room][day].add(si)
+
+                                    # Mark all selected rooms occupied
+                                    for room in selected_rooms:
+                                        if room not in room_schedule:
+                                            room_schedule[room] = {d: set() for d in range(len(DAYS))}
+                                        room_schedule[room][day].add(si)
+
                                 return True
+
                         return False
+
 
                     for _ in range(lec_sessions):
                         ok = schedule_component(LECTURE_MIN, 'LEC', attempts_limit=800)
@@ -2099,6 +2333,8 @@ def generate_all_timetables():
         print("Failed to write electives output:", e)
         traceback.print_exc()
 
+    # find_common_free_90min_slot(all_department_timetables, DAYS, TIME_SLOTS, config)
+
     return out_filename
 
 def write_timetable_to_sheet(ws, timetable, courses_combined, section_subject_color, 
@@ -2188,7 +2424,7 @@ def write_timetable_to_sheet(ws, timetable, courses_combined, section_subject_co
             if timetable[day_idx][slot_idx]['type'] is None:
                 cell_obj.border = border
                 continue
-
+            
             typ = timetable[day_idx][slot_idx]['type']
             code = timetable[day_idx][slot_idx]['code']
             cls = timetable[day_idx][slot_idx]['classroom']
@@ -2247,14 +2483,22 @@ def write_timetable_to_sheet(ws, timetable, courses_combined, section_subject_co
                 # Regular course
                 span = [slot_idx]
                 j = slot_idx + 1
-                while (j < len(TIME_SLOTS) and 
-                       timetable[day_idx][j]['type'] is not None and 
-                       timetable[day_idx][j]['code'] == ''):
+                current_type = timetable[day_idx][slot_idx]['type']
+                current_faculty = timetable[day_idx][slot_idx]['faculty']
+                while (
+                    j < len(TIME_SLOTS)
+                    and timetable[day_idx][j]['type'] == current_type
+                    and timetable[day_idx][j]['faculty'] == ''
+                    and timetable[day_idx][j]['name'] == ''
+                ):
                     span.append(j)
                     j += 1
                 
                 # Special handling for lab slots to show two rooms
-                if typ == 'LAB':
+                if typ == 'RESERVED':
+                    display = "COMMON FREE\n(Reserved)"
+                    fill = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
+                elif typ == 'LAB':
                     if 'lab_rooms' in timetable[day_idx][slot_idx] and timetable[day_idx][slot_idx]['lab_rooms']:
                         lab_rooms_list = timetable[day_idx][slot_idx]['lab_rooms']
                         if len(lab_rooms_list) >= 2:

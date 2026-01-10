@@ -483,17 +483,17 @@
         <div class="header">
             <h1>🎓 Timetable Generator</h1>
             <p>Manage courses, electives, and generate schedules</p>
-            <button class="btn btn-primary generate-btn" onclick="generateTimetable()">
+            <button class="btn btn-primary generate-btn" onclick="generateTimetable(event)">
                 <span>⚡</span> Generate Timetables
             </button>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('overview')">📊 Overview</button>
-            <button class="tab" onclick="showTab('courses')">📚 Courses</button>
-            <button class="tab" onclick="showTab('electives')">🎯 Electives</button>
-            <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
-            <button class="tab" onclick="showTab('downloads')">📥 Downloads</button>
+            <button class="tab active" onclick="showTab('overview', event)">📊 Overview</button>
+	    <button class="tab" onclick="showTab('courses', event)">📚 Courses</button>
+            <button class="tab" onclick="showTab('electives', event)">🎯 Electives</button>
+	    <button class="tab" onclick="showTab('settings', event)">⚙️ Settings</button>
+	    <button class="tab" onclick="showTab('downloads', event)">📥 Downloads</button>
         </div>
 
         <div class="content">
@@ -528,7 +528,7 @@
             <!-- Electives Tab -->
             <div id="electives" class="tab-content">
                 <div class="card">
-                    <h3>Elective Courses</h3>
+                    <h3>Courses</h3>
                     <div id="electives-list"></div>
                 </div>
             </div>
@@ -642,11 +642,11 @@
 
     <script>
         // Tab switching
-        function showTab(tabName) {
+        function showTab(tabName, e) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            event.target.classList.add('active');
+            e.target.classList.add('active');
             document.getElementById(tabName).classList.add('active');
 
             // Load data for specific tabs
@@ -766,6 +766,34 @@
             document.getElementById('courses-list').innerHTML = html || '<p>No courses found.</p>';
         }
 
+
+function renderCourses() {
+    if (!allCoursesData) return;
+
+    let html = '';
+
+    for (const [group, courses] of Object.entries(allCoursesData)) {
+        html += `<h4 style="margin-top:20px;color:#667eea;">${group}</h4>`;
+        html += '<div class="table-container"><table>';
+        html += '<thead><tr><th>Code</th><th>Name</th><th>Faculty</th><th>L-T-P-S</th></tr></thead><tbody>';
+
+        courses.forEach(course => {
+            const ltps = `${course.L || 0}-${course.T || 0}-${course.P || 0}-${course.S || 0}`;
+            html += `<tr>
+                <td>${course['Course Code']}</td>
+                <td>${course['Course Name']}</td>
+                <td>${course.Faculty || 'TBD'}</td>
+                <td>${ltps}</td>
+            </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+    }
+
+    document.getElementById('courses-list').innerHTML =
+        html || '<p>No courses found.</p>';
+}
+
         // Load electives
         async function loadElectives() {
             try {
@@ -779,14 +807,16 @@
                 }
 
                 let html = '<div class="table-container"><table>';
-                html += '<thead><tr><th>Electives</th><th>Faculty</th></tr></thead><tbody>';
+                html += '<thead><tr><th>No of Courses</th><th>Elective</th></tr></thead><tbody>';
                 
-                data.electives.forEach(elective => {
-                    html += `<tr>
-                        <td>${Object.values(elective)[0]}</td>
-                        <td>${Object.values(elective)[1]}</td>
-                    </tr>`;
-                });
+		data.electives.forEach(elective => {
+    			const values = Object.values(elective);
+    			html += `<tr>
+        				<td>${values[0] || ''}</td>
+        				<td>${values[1] || ''}</td>
+        				<td>${values[2] || ''}</td>
+    				</tr>`;
+		});
                 
                 html += '</tbody></table></div>';
 
@@ -879,29 +909,38 @@
         });
 
         // Generate timetable
-        async function generateTimetable() {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Generating...';
+let generating = false;
 
-            try {
-                const response = await fetch('/api/generate', { method: 'POST' });
-                const data = await response.json();
+async function generateTimetable(e) {
+    if (generating) return;
 
-                if (data.success) {
-                    showAlert('Timetables generated successfully!', 'success');
-                    loadOverviewStats();
-                } else {
-                    showAlert('Error generating timetables: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showAlert('Error generating timetables: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<span>⚡</span> Generate Timetables';
-            }
+    generating = true;
+
+    const btn = e.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> Generating...';
+
+    try {
+        const response = await fetch('/api/generate', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+            showAlert('Timetables generated successfully!', 'success');
+            loadOverviewStats();
+            loadOutputFiles();
+            loadTeachers();
+        } else {
+            showAlert(data.error || 'Generation failed. Check backend.', 'error');
         }
 
+    } catch (error) {
+        showAlert('Error generating timetables: ' + error.message, 'error');
+    } finally {
+        generating = false;
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡</span> Generate Timetables';
+    }
+}
         // Load output files
         async function loadOutputFiles() {
             try {
