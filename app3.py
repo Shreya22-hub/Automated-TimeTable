@@ -121,6 +121,7 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
         room_map[room_name] = cap
         total_capacity += cap * courses_per_room
     
+    # Save raw config for frontend API use
     room_layouts_file = os.path.join(output_folder, "room_layouts.json")
     with open(room_layouts_file, 'w') as f:
         json.dump(room_layouts_map, f, indent=4)
@@ -271,8 +272,46 @@ def generate_schedule_logic(courses_path, rooms_path, faculty_path, output_folde
 
     schedule_df = pd.DataFrame(schedule)
     schedule_df = schedule_df.sort_values(['Date', 'Slot', 'Room'])
-    schedule_df.to_excel(excel_path, index=False)
     
+    # -----------------------------------------------------------
+    # NEW: Write Schedule and Layout Sheets to Excel
+    # -----------------------------------------------------------
+    try:
+        # Use ExcelWriter to handle multiple sheets
+        with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+            # 1. Write the main schedule
+            schedule_df.to_excel(writer, sheet_name='Exam_Schedule', index=False)
+            
+            # 2. Write individual room layouts
+            for room_name, layout_info in room_layouts_map.items():
+                rows = layout_info['rows']
+                cols = layout_info['cols']
+                stype = layout_info['type']
+
+                # Fallback calculation if layout wasn't explicitly defined in file
+                if rows == 0 or cols == 0:
+                    cap = room_map.get(room_name, 60)
+                    # Estimate grid shape based on capacity
+                    cols = int(math.ceil(math.sqrt(cap)))
+                    rows = int(math.ceil(cap / cols))
+                    stype = "individual"
+
+                # Generate the grid data (2D list of strings)
+                grid_obj = get_seating_layout(rows, cols, stype, courses_per_room, room_name)
+                grid_2d = grid_obj['grid']
+                
+                # Convert grid to DataFrame
+                layout_df = pd.DataFrame(grid_2d)
+                
+                # Sanitize sheet name (max 31 chars, no invalid chars)
+                safe_sheet_name = "".join([c for c in room_name if c.isalnum() or c in (' ', '_')]).replace(' ', '_')[:31]
+                
+                # Write to Excel (No header, no index, just the grid)
+                layout_df.to_excel(writer, sheet_name=safe_sheet_name, index=False, header=False)
+                
+    except Exception as e:
+        raise ValueError(f"Error writing Excel file: {str(e)}")
+
     return excel_path, snapshot_path
 
 # -----------------------------------------------------------
@@ -430,8 +469,52 @@ def save_changes():
     try:
         updated_rows = request.json.get('rows', [])
         if not updated_rows: return jsonify({"error": "No data"}), 400
-        df_new = pd.DataFrame(updated_rows)
-        df_new.to_excel(file_path, index=False)
+        
+        # Read existing file to preserve layout sheets if needed, 
+        # or simply overwrite. For simplicity, we overwrite the 'Exam_Schedule' sheet 
+        # if we used openpyxl to edit specific sheets, but here we just write the dataframe back.
+        # WARNING: This will overwrite the file, potentially losing the layout sheets 
+        # unless we re-add them.
+        
+        # To preserve layouts, we should use the ExcelWriter again.
+        # However, 'save_changes' usually only edits the schedule rows.
+        # To keep it simple and robust: We will overwrite the file. 
+        # If user wants layouts back, they should regenerate or we append them here.
+        
+        # Let's implement preserving the layouts:
+        with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+            df_new = pd.DataFrame(updated_rows)
+            df_new.to_excel(writer, sheet_name='Exam_Schedule', index=False)
+            
+            # Re-write layout sheets
+            layout_path = os.path.join(app.config['UPLOAD_FOLDER'], "room_layouts.json")
+            if os.path.exists(layout_path):
+                with open(layout_path, 'r') as f:
+                    layouts = json.load(f)
+                
+                # Need config for groups count
+                config_path = os.path.join(app.config['UPLOAD_FOLDER'], "configurations.json")
+                groups = 2
+                if os.path.exists(config_path):
+                    with open(config_path, 'r') as cf:
+                        cfg = json.load(cf)
+                        groups = cfg.get('courses_per_room', 2)
+                        
+                for room_name, layout_info in layouts.items():
+                    rows = layout_info['rows']
+                    cols = layout_info['cols']
+                    stype = layout_info['type']
+                    if rows == 0 or cols == 0:
+                        # Estimate
+                        cols = int(math.ceil(math.sqrt(60))) # Default fallback
+                        rows = int(math.ceil(60 / cols))
+                        stype = "individual"
+                        
+                    grid_obj = get_seating_layout(rows, cols, stype, groups, room_name)
+                    layout_df = pd.DataFrame(grid_obj['grid'])
+                    safe_sheet_name = "".join([c for c in room_name if c.isalnum() or c in (' ', '_')]).replace(' ', '_')[:31]
+                    layout_df.to_excel(writer, sheet_name=safe_sheet_name, index=False, header=False)
+
         return jsonify({"success": True})
     except Exception as e:
         import traceback
